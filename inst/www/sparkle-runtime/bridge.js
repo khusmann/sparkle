@@ -237,31 +237,43 @@ class SparkleBridge {
         // We need to create a mechanism to call R and get the virtual DOM
         // For POC, we'll use a ref to store the current R component output
         const [rOutput, setROutput] = React.useState(null);
-        const [loading, setLoading] = React.useState(true);
+        const [isUpdating, setIsUpdating] = React.useState(false);
+        const isFirstRender = React.useRef(true);
 
         React.useEffect(() => {
+          // Set updating state (but not on first render where we want true loading)
+          if (!isFirstRender.current) {
+            setIsUpdating(true);
+          }
+
           // Call the R component function
           this.callRComponent()
             .then(output => {
               setROutput(output);
-              setLoading(false);
+              setIsUpdating(false);
+              isFirstRender.current = false;
             })
             .catch(error => {
               console.error('Error calling R component:', error);
-              setLoading(false);
+              setIsUpdating(false);
+              isFirstRender.current = false;
             });
         }, [renderCount]);
 
-        if (loading) {
+        if (!rOutput) {
           return React.createElement('div', null, 'Loading component...');
         }
 
-        if (!rOutput) {
-          return React.createElement('div', null, 'No output from component');
-        }
-
         // Convert R output to React elements
-        return this.componentFactory.toReactElement(rOutput);
+        const content = this.componentFactory.toReactElement(rOutput);
+
+        // Wrap in a div with opacity transition during updates
+        return React.createElement('div', {
+          style: {
+            opacity: isUpdating ? 0.6 : 1,
+            transition: 'opacity 0.15s ease-in-out'
+          }
+        }, content);
       };
 
       return React.createElement(RComponent);

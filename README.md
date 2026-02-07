@@ -29,12 +29,12 @@ Sparkle enables R developers to create interactive web applications using famili
 
 1. **Install JavaScript dependencies:**
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Build the JavaScript bundle:**
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 3. **Load the R package:**

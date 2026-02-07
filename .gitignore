@@ -7,7 +7,7 @@
 
 # Node
 node_modules/
-package-lock.json
+pnpm-lock.yaml
 
 # Build outputs
 inst/www/bundle.js

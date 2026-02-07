@@ -38,22 +38,22 @@ The Sparkle POC has been fully implemented with the following structure:
 
 ## Next Steps to Run Sparkle
 
-### Step 1: Install Node.js
+### Step 1: Install Node.js and pnpm
 
-Sparkle requires Node.js to build the JavaScript bundle.
+Sparkle requires Node.js and pnpm to build the JavaScript bundle.
 
 **Option A: Using package manager**
 
 ```bash
 # Ubuntu/Debian
 sudo apt update
-sudo apt install nodejs npm
+sudo apt install nodejs
 
 # macOS (using Homebrew)
 brew install node
 
 # Fedora
-sudo dnf install nodejs npm
+sudo dnf install nodejs
 ```
 
 **Option B: Using nvm (recommended)**
@@ -67,10 +67,21 @@ nvm install --lts
 nvm use --lts
 ```
 
+**Then install pnpm:**
+
+```bash
+# Using npm
+npm install -g pnpm
+
+# Or using corepack (Node.js 16.13+)
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+
 Verify installation:
 ```bash
 node --version  # Should show v16+ or higher
-npm --version
+pnpm --version
 ```
 
 ### Step 2: Install JavaScript Dependencies
@@ -79,7 +90,7 @@ From the sparkle project directory:
 
 ```bash
 cd /home/khusmann/Projects/sparkle
-npm install
+pnpm install
 ```
 
 This will install:
@@ -90,7 +101,7 @@ This will install:
 ### Step 3: Build the JavaScript Bundle
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 This will create `/inst/www/bundle.js` containing the Sparkle runtime.
@@ -143,14 +154,14 @@ This will:
 
 ## Troubleshooting
 
-### "npm: command not found"
-Node.js is not installed. Follow Step 1 above.
+### "pnpm: command not found"
+pnpm is not installed. Follow Step 1 above to install pnpm.
 
 ### "bundle.js not found"
-The JavaScript bundle hasn't been built yet. Run `npm run build`.
+The JavaScript bundle hasn't been built yet. Run `pnpm run build`.
 
 ### "Cannot find module 'esbuild'"
-npm dependencies not installed. Run `npm install`.
+Dependencies not installed. Run `pnpm install`.
 
 ### webR initialization is slow
 The first time webR loads, it downloads the WebAssembly runtime (~30MB). This is cached by the browser for subsequent loads.
@@ -256,7 +267,7 @@ install.packages(c("jsonlite", "httpuv", "devtools"))
 
 ### Modifying JavaScript Code
 1. Edit files in `/inst/www/sparkle-runtime/`
-2. Rebuild: `npm run build`
+2. Rebuild: `pnpm run build`
 3. Refresh browser
 
 ### Adding New Tags

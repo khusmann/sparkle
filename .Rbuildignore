@@ -4,7 +4,7 @@
 ^\.gitignore$
 ^node_modules$
 ^package\.json$
-^package-lock\.json$
+^pnpm-lock\.yaml$
 ^build\.js$
 ^inst/www/sparkle-runtime/.*\.js$
 ^inst/www/sparkle-runtime/.*\.jsx$

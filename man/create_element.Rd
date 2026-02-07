@@ -17,3 +17,4 @@ A list representing a virtual DOM element
 \description{
 Create a virtual DOM element
 }
+\keyword{internal}

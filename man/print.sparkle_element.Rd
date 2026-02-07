@@ -6,6 +6,14 @@
 \usage{
 \method{print}{sparkle_element}(x, ...)
 }
+\arguments{
+\item{x}{A sparkle_element object}
+
+\item{...}{Additional arguments (ignored)}
+}
+\value{
+Invisibly returns the input object
+}
 \description{
 Print method for sparkle elements
 }

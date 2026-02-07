@@ -10,8 +10,49 @@ An object of class \code{list} of length 9.
 \usage{
 tags
 }
+\arguments{
+\item{...}{For tag functions: named arguments become props (attributes),
+unnamed arguments become children (content)}
+}
+\value{
+A list with class \code{sparkle_element} representing a virtual DOM element
+}
 \description{
 Create virtual DOM descriptions for HTML elements. These functions return
 list structures that the Sparkle JavaScript bridge converts into React elements.
+}
+\details{
+The \code{tags} list contains functions for creating common HTML elements:
+\itemize{
+  \item \code{tags$div(...)} - Create a div element
+  \item \code{tags$button(...)} - Create a button element
+  \item \code{tags$h1(...)}, \code{tags$h2(...)}, \code{tags$h3(...)} - Create heading elements
+  \item \code{tags$p(...)} - Create a paragraph element
+  \item \code{tags$span(...)} - Create a span element
+  \item \code{tags$input(...)} - Create an input element
+  \item \code{tags$label(...)} - Create a label element
+}
+}
+\examples{
+\dontrun{
+# Simple element
+tags$div("Hello, world!")
+
+# Element with props
+tags$div(class_name = "container", "Content here")
+
+# Nested elements
+tags$div(
+  tags$h1("Title"),
+  tags$p("Paragraph text")
+)
+
+# Element with event handler
+tags$button(
+  "Click me",
+  on_click = wrap_fn(\() print("Clicked!"))
+)
+}
+
 }
 \keyword{datasets}

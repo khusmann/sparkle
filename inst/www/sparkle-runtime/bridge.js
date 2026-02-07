@@ -5,10 +5,11 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { WebR } from '@r-wasm/webr';
 import { createComponentFactory } from './component-factory.js';
 import { createEventHandler } from './event-handler.js';
 import { getHookManager, createUseStateBridge } from './hook-manager.js';
+
+// WebR will be loaded from CDN and available globally
 
 class SparkleBridge {
   constructor() {
@@ -30,8 +31,12 @@ class SparkleBridge {
       // Show loading message
       rootElement.innerHTML = '<div id="loading">Initializing webR...</div>';
 
-      // Initialize webR
+      // Initialize webR - load it dynamically from CDN
       console.log('Loading webR...');
+
+      // Import webR as an ES module
+      const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
+
       this.webR = new WebR({
         baseUrl: 'https://webr.r-wasm.org/latest/',
       });
@@ -47,11 +52,18 @@ class SparkleBridge {
       // Set up R environment
       await this.setupREnvironment();
 
-      // Load component code from window.SPARKLE_COMPONENT_CODE
+      // Load component code and name from window
       const componentCode = window.SPARKLE_COMPONENT_CODE;
+      const componentName = window.SPARKLE_COMPONENT_NAME;
+
       if (!componentCode) {
         throw new Error('No component code provided');
       }
+      if (!componentName) {
+        throw new Error('No component name provided');
+      }
+
+      this.componentName = componentName;
 
       console.log('Loading component code...');
       await this.loadComponent(componentCode);
@@ -208,11 +220,8 @@ class SparkleBridge {
    */
   async callRComponent() {
     try {
-      // For POC, assume the component is called "Counter" or the last defined function
-      // In production, we'd track this more carefully
-
-      // Execute the component function
-      const result = await this.webR.evalR('Counter()');
+      // Execute the component function using the stored component name
+      const result = await this.webR.evalR(`${this.componentName}()`);
 
       // Convert the result to JavaScript
       const jsResult = await result.toJs();

@@ -25,9 +25,15 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
     stop("component must be a function that returns a Sparkle element")
   }
 
-  # Serialize the component function to pass to JavaScript
-  component_code <- deparse(component)
-  component_code_str <- paste(component_code, collapse = "\n")
+  # Get the component name from the call
+  component_name <- deparse(substitute(component))
+
+  # Serialize the component function with assignment
+  component_fn <- deparse(component)
+  component_code_str <- paste0(
+    component_name, " <- ",
+    paste(component_fn, collapse = "\n")
+  )
 
   # Get the path to the www directory
   # When installed: system.file finds files in inst/ promoted to package root
@@ -76,11 +82,16 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
         html_path <- file.path(www_dir, "index.html")
         html_content <- paste(readLines(html_path), collapse = "\n")
 
-        # Inject the component code
+        # Inject the component code and name
         component_json <- jsonlite::toJSON(component_code_str, auto_unbox = TRUE)
+        component_name_json <- jsonlite::toJSON(component_name, auto_unbox = TRUE)
+
         html_content <- sub(
           "window.SPARKLE_COMPONENT_CODE = '';",
-          paste0("window.SPARKLE_COMPONENT_CODE = ", component_json, ";"),
+          paste0(
+            "window.SPARKLE_COMPONENT_CODE = ", component_json, ";\n",
+            "        window.SPARKLE_COMPONENT_NAME = ", component_name_json, ";"
+          ),
           html_content,
           fixed = TRUE
         )

@@ -23,16 +23,11 @@ async function build() {
       entryPoints: [path.join(__dirname, 'inst', 'www', 'sparkle-runtime', 'bridge.js')],
       bundle: true,
       outfile: outFile,
-      format: 'iife',
-      globalName: 'Sparkle',
+      format: 'esm',  // Use ES modules to support dynamic imports
       platform: 'browser',
       target: 'es2020',
       minify: false, // Set to true for production
       sourcemap: true,
-      external: [
-        // webR is loaded from CDN
-        '@r-wasm/webr'
-      ],
       define: {
         'process.env.NODE_ENV': '"production"'
       },

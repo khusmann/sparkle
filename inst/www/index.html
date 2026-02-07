@@ -33,21 +33,23 @@
         <div id="loading">Loading Sparkle app...</div>
     </div>
 
-    <!-- Sparkle runtime bundle (React + webR + bridge) -->
-    <script src="/bundle.js"></script>
-
     <!-- Initialize Sparkle -->
-    <script>
+    <script type="module">
         // Will be populated by sparkle_app() with component code
         window.SPARKLE_COMPONENT_CODE = '';
 
-        // Initialize when bundle is loaded
-        window.addEventListener('load', function() {
-            if (window.Sparkle) {
-                window.Sparkle.init(document.getElementById('root'));
-            } else {
-                console.error('Sparkle runtime not loaded');
-            }
+        // Import and initialize Sparkle
+        import('/bundle.js').then(module => {
+            const rootElement = document.getElementById('root');
+            module.init(rootElement);
+        }).catch(error => {
+            console.error('Failed to load Sparkle:', error);
+            document.getElementById('root').innerHTML = `
+                <div style="color: red; padding: 20px;">
+                    <h2>Failed to load Sparkle runtime</h2>
+                    <pre>${error.message}</pre>
+                </div>
+            `;
         });
     </script>
 </body>

@@ -1,0 +1,17 @@
+Package: sparkle
+Type: Package
+Title: Client-Side Reactive Framework for R with React
+Version: 0.1.0
+Authors@R: person("Your", "Name", email = "your.email@example.com", role = c("aut", "cre"))
+Description: A client-side reactive framework that enables R developers to create
+    interactive web applications using R syntax. Sparkle runs entirely in the browser
+    via webR and uses React for rendering. Inspired by Shiny but without server requirements.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.0.0)
+Imports:
+    jsonlite,
+    httpuv
+RoxygenNote: 7.2.3

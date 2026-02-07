@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.gitignore$
+^node_modules$
+^package\.json$
+^package-lock\.json$
+^build\.js$
+^inst/www/sparkle-runtime/.*\.js$
+^inst/www/sparkle-runtime/.*\.jsx$

@@ -1,0 +1,25 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# Node
+node_modules/
+package-lock.json
+
+# Build outputs
+inst/www/bundle.js
+inst/www/bundle.js.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

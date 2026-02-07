@@ -10,32 +10,38 @@ use_state(initial_value)
 \item{initial_value}{The initial value for the state variable}
 }
 \value{
-A sparkle_state object with:
-  \item{value}{The current state value (read-only)}
-  \item{set(new_value_or_fn)}{Method to update state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
+A 2-element list containing:
+  \item{1}{A getter function that returns the current state value}
+  \item{2}{A setter function(new_value_or_fn) that updates state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
 }
 \description{
 Creates a state variable similar to React's useState hook.
 The state is managed by React in JavaScript, and this function
 provides an R interface to it.
 }
+\details{
+Designed to work with the zeallot package for destructuring assignment:
+c(value, setValue) %<-% use_state(initial)
+}
 \examples{
 \dontrun{
+library(zeallot)
+
 Counter <- function() {
-  count <- use_state(0)
+  c(count, setCount) \%<-\% use_state(0)
   tags$div(
-    tags$h1(paste("Count:", count$value)),
-    tags$button("Increment", on_click = \() count$set(count$value + 1)),
-    tags$button("Reset", on_click = \() count$set(0))
+    tags$h1(paste("Count:", count())),
+    tags$button("Increment", on_click = \() setCount(count() + 1)),
+    tags$button("Reset", on_click = \() setCount(0))
   )
 }
 
-# Functional updates (pass a function to $set)
+# Functional updates (pass a function to setter)
 TodoApp <- function() {
-  todos <- use_state(list())
+  c(todos, setTodos) \%<-\% use_state(list())
   tags$button(
     "Add Item",
-    on_click = \() todos$set(\(t) c(t, list("New item")))
+    on_click = \() setTodos(\(t) c(t, list("New item")))
   )
 }
 }

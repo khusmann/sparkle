@@ -53,9 +53,10 @@ class SparkleBridge {
       // Set up R environment
       await this.setupREnvironment();
 
-      // Load component code and name from window
+      // Load component code, name, and dependencies from window
       const componentCode = window.SPARKLE_COMPONENT_CODE;
       const componentName = window.SPARKLE_COMPONENT_NAME;
+      const dependencies = window.SPARKLE_DEPENDENCIES || [];
 
       if (!componentCode) {
         throw new Error('No component code provided');
@@ -65,6 +66,11 @@ class SparkleBridge {
       }
 
       this.componentName = componentName;
+
+      // Install required packages
+      if (dependencies.length > 0) {
+        await this.installPackages(dependencies);
+      }
 
       console.log('Loading component code...');
       await this.loadComponent(componentCode);
@@ -108,6 +114,27 @@ class SparkleBridge {
     await this.webR.evalR(rSource);
 
     console.log('R environment set up');
+  }
+
+  /**
+   * Install required packages in webR
+   */
+  async installPackages(packages) {
+    console.log('Installing packages:', packages);
+
+    // Update loading message
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) {
+      loadingEl.innerHTML = `Installing packages: ${packages.join(', ')}...`;
+    }
+
+    try {
+      await this.webR.installPackages(packages);
+      console.log('Packages installed successfully');
+    } catch (error) {
+      console.error('Error installing packages:', error);
+      throw new Error(`Failed to install packages: ${error.message}`);
+    }
   }
 
   /**

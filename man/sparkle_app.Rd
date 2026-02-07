@@ -22,10 +22,10 @@ Similar to Shiny's \code{runApp()}.
 \examples{
 \dontrun{
 Counter <- function() {
-  count <- use_state(0)
+  c(count, setCount) \%<-\% use_state(0)
   tags$div(
-    tags$h1(paste("Count:", count$value)),
-    tags$button("Increment", on_click = \() count$set(count$value + 1))
+    tags$h1(paste("Count:", count())),
+    tags$button("Increment", on_click = \() setCount(count() + 1))
   )
 }
 

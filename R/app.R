@@ -1,3 +1,62 @@
+#' Detect the source file that called sparkle_app
+#'
+#' @return The path to the source file, or NULL if not found
+#' @keywords internal
+detect_source_file <- function() {
+  # Walk up the call stack to find a frame with source info
+  for (i in 1:sys.nframe()) {
+    srcref <- getSrcref(sys.call(i))
+    if (!is.null(srcref)) {
+      srcfile <- attr(srcref, "srcfile")
+      if (!is.null(srcfile) && !is.null(srcfile$filename)) {
+        return(srcfile$filename)
+      }
+    }
+  }
+  NULL
+}
+
+#' Detect package dependencies from source file
+#'
+#' Parses source file to find library() and require() calls
+#'
+#' @param file_path Path to R source file
+#' @return Character vector of package names
+#' @keywords internal
+detect_dependencies <- function(file_path = NULL) {
+  # If no file provided, try to detect it
+  if (is.null(file_path)) {
+    file_path <- detect_source_file()
+  }
+
+  # If we still don't have a file, return empty
+  if (is.null(file_path) || !file.exists(file_path)) {
+    return(character(0))
+  }
+
+  # Read the source file
+  source_code <- paste(readLines(file_path, warn = FALSE), collapse = "\n")
+
+  # Parse the code to find library() and require() calls
+  # Match library(pkg), library("pkg"), require(pkg), require("pkg")
+  library_pattern <- "(?:library|require)\\s*\\(\\s*['\"]?([a-zA-Z0-9.]+)['\"]?\\s*\\)"
+
+  matches <- gregexpr(library_pattern, source_code, perl = TRUE)
+
+  if (matches[[1]][1] == -1) {
+    return(character(0))
+  }
+
+  # Extract package names from matches
+  match_data <- regmatches(source_code, matches)[[1]]
+  pkg_names <- sub(".*\\(\\s*['\"]?([a-zA-Z0-9.]+)['\"]?\\s*\\).*", "\\1", match_data)
+
+  # Remove 'sparkle' since it's already loaded
+  pkg_names <- setdiff(pkg_names, "sparkle")
+
+  unique(pkg_names)
+}
+
 #' Launch a Sparkle Application
 #'
 #' Start a local development server and launch a Sparkle app in the browser.
@@ -11,10 +70,10 @@
 #' @examples
 #' \dontrun{
 #' Counter <- function() {
-#'   count <- use_state(0)
+#'   c(count, setCount) %<-% use_state(0)
 #'   tags$div(
-#'     tags$h1(paste("Count:", count$value)),
-#'     tags$button("Increment", on_click = \() count$set(count$value + 1))
+#'     tags$h1(paste("Count:", count())),
+#'     tags$button("Increment", on_click = \() setCount(count() + 1))
 #'   )
 #' }
 #'
@@ -28,9 +87,25 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
   # Get the component name from the call
   component_name <- deparse(substitute(component))
 
+  # Detect package dependencies from the source file
+  dependencies <- detect_dependencies()
+
+  if (length(dependencies) > 0) {
+    message("Detected package dependencies: ", paste(dependencies, collapse = ", "))
+  }
+
+  # Build component code with library() calls
+  library_calls <- if (length(dependencies) > 0) {
+    paste0("library(", dependencies, ")", collapse = "\n")
+  } else {
+    ""
+  }
+
   # Serialize the component function with assignment
   component_fn <- deparse(component)
   component_code_str <- paste0(
+    library_calls,
+    if (library_calls != "") "\n\n" else "",
     component_name, " <- ",
     paste(component_fn, collapse = "\n")
   )
@@ -82,15 +157,18 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
         html_path <- file.path(www_dir, "index.html")
         html_content <- paste(readLines(html_path), collapse = "\n")
 
-        # Inject the component code and name
+        # Inject the component code, name, and dependencies
         component_json <- jsonlite::toJSON(component_code_str, auto_unbox = TRUE)
         component_name_json <- jsonlite::toJSON(component_name, auto_unbox = TRUE)
+        # Don't unbox dependencies - always keep as array
+        dependencies_json <- jsonlite::toJSON(dependencies)
 
         html_content <- sub(
           "window.SPARKLE_COMPONENT_CODE = '';",
           paste0(
             "window.SPARKLE_COMPONENT_CODE = ", component_json, ";\n",
-            "        window.SPARKLE_COMPONENT_NAME = ", component_name_json, ";"
+            "        window.SPARKLE_COMPONENT_NAME = ", component_name_json, ";\n",
+            "        window.SPARKLE_DEPENDENCIES = ", dependencies_json, ";"
           ),
           html_content,
           fixed = TRUE

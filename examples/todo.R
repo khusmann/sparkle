@@ -36,7 +36,7 @@ TodoApp <- function() {
         "Add Task",
         on_click = \() {
           if (nchar(input_text$value) > 0) {
-            todos$update(\(t) c(t, list(create_todo(input_text$value))))
+            todos$set(\(t) c(t, list(create_todo(input_text$value))))
             input_text$set("")
           }
         }
@@ -57,7 +57,7 @@ TodoApp <- function() {
               type = "checkbox",
               checked = todo$completed,
               on_change = \() {
-                todos$update(\(t) {
+                todos$set(\(t) {
                   t[[i]]$completed <- !t[[i]]$completed
                   t
                 })
@@ -69,7 +69,7 @@ TodoApp <- function() {
             ),
             tags$button(
               "Delete",
-              on_click = \() todos$update(\(t) t[-i])
+              on_click = \() todos$set(\(t) t[-i])
             )
           )
         })
@@ -85,7 +85,7 @@ TodoApp <- function() {
       )),
       tags$button(
         "Clear Completed",
-        on_click = \() todos$update(\(t) Filter(\(todo) !todo$completed, t))
+        on_click = \() todos$set(\(t) Filter(\(todo) !todo$completed, t))
       ),
       tags$button(
         "Clear All",

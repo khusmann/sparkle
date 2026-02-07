@@ -13,15 +13,22 @@ function OptimisticInput({ value: rValue, onChange: rOnChange, ...otherProps }) 
   // Local state for optimistic updates
   const [localValue, setLocalValue] = React.useState(rValue);
   const debounceTimer = React.useRef(null);
+  const isTyping = React.useRef(false);
 
   // Update local value when R value changes (e.g., programmatic clear)
+  // But only if we're not currently typing
   React.useEffect(() => {
-    setLocalValue(rValue);
+    if (!isTyping.current) {
+      setLocalValue(rValue);
+    }
   }, [rValue]);
 
   // Handle change with optimistic update
   const handleChange = (event) => {
     const newValue = event.target.value;
+
+    // Mark as typing
+    isTyping.current = true;
 
     // Update local state immediately (optimistic)
     setLocalValue(newValue);
@@ -44,6 +51,7 @@ function OptimisticInput({ value: rValue, onChange: rOnChange, ...otherProps }) 
 
     // Debounce R callback to batch rapid keystrokes
     debounceTimer.current = setTimeout(() => {
+      isTyping.current = false; // Done typing
       if (rOnChange) {
         rOnChange(syntheticEvent);
       }
@@ -129,7 +137,12 @@ class ComponentFactory {
 
       // Use OptimisticInput wrapper for controlled text inputs
       if (isControlledTextInput) {
-        return React.createElement(OptimisticInput, transformedProps);
+        // Ensure stable key to prevent remounting
+        const inputKey = transformedProps.key || transformedProps.id || transformedProps.name;
+        return React.createElement(OptimisticInput, {
+          ...transformedProps,
+          key: inputKey
+        });
       }
 
       // Create React element normally

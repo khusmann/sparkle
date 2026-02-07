@@ -12,8 +12,9 @@
 \item{name}{The method or field name being accessed}
 }
 \value{
-For 'set': a function(new_value) that updates state
-  For 'update': a function(fn) that applies fn to current value
+For 'set': a function(new_value_or_fn) that updates state.
+  If passed a function, applies it to current value (like React's setState).
+  If passed any other value, sets state directly.
   For other names: the underlying list element
 }
 \description{

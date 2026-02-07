@@ -12,8 +12,7 @@ use_state(initial_value)
 \value{
 A sparkle_state object with:
   \item{value}{The current state value (read-only)}
-  \item{set(new_value)}{Method to update state to a new value}
-  \item{update(fn)}{Method to update state using a function: fn(old_value) -> new_value}
+  \item{set(new_value_or_fn)}{Method to update state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
 }
 \description{
 Creates a state variable similar to React's useState hook.
@@ -31,12 +30,12 @@ Counter <- function() {
   )
 }
 
-# Functional updates
+# Functional updates (pass a function to $set)
 TodoApp <- function() {
   todos <- use_state(list())
   tags$button(
     "Add Item",
-    on_click = \() todos$update(\(t) c(t, list("New item")))
+    on_click = \() todos$set(\(t) c(t, list("New item")))
   )
 }
 }

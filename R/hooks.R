@@ -43,8 +43,7 @@ sparkle_set_state <- function(index, value) {
 #' @param initial_value The initial value for the state variable
 #' @return A sparkle_state object with:
 #'   \item{value}{The current state value (read-only)}
-#'   \item{set(new_value)}{Method to update state to a new value}
-#'   \item{update(fn)}{Method to update state using a function: fn(old_value) -> new_value}
+#'   \item{set(new_value_or_fn)}{Method to update state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
 #' @export
 #' @examples
 #' \dontrun{
@@ -57,12 +56,12 @@ sparkle_set_state <- function(index, value) {
 #'   )
 #' }
 #'
-#' # Functional updates
+#' # Functional updates (pass a function to $set)
 #' TodoApp <- function() {
 #'   todos <- use_state(list())
 #'   tags$button(
 #'     "Add Item",
-#'     on_click = \() todos$update(\(t) c(t, list("New item")))
+#'     on_click = \() todos$set(\(t) c(t, list("New item")))
 #'   )
 #' }
 #' }
@@ -104,25 +103,25 @@ reset_hooks <- function() {
 #'
 #' @param x A sparkle_state object
 #' @param name The method or field name being accessed
-#' @return For 'set': a function(new_value) that updates state
-#'   For 'update': a function(fn) that applies fn to current value
+#' @return For 'set': a function(new_value_or_fn) that updates state.
+#'   If passed a function, applies it to current value (like React's setState).
+#'   If passed any other value, sets state directly.
 #'   For other names: the underlying list element
 #' @export
 `$.sparkle_state` <- function(x, name) {
   if (name == "set") {
     # Return a setter function bound to this state's index
-    function(new_value) {
-      sparkle_set_state(x$index, new_value)
-    }
-  } else if (name == "update") {
-    # Return an updater function for functional updates
-    function(update_fn) {
-      if (!is.function(update_fn)) {
-        stop("update() requires a function argument")
+    # Handles both direct values and functional updates (like React)
+    function(new_value_or_fn) {
+      if (is.function(new_value_or_fn)) {
+        # Functional update: apply function to current value
+        current <- sparkle_get_state(x$index)
+        new_value <- new_value_or_fn(current)
+        sparkle_set_state(x$index, new_value)
+      } else {
+        # Direct update: set to new value
+        sparkle_set_state(x$index, new_value_or_fn)
       }
-      current <- sparkle_get_state(x$index)
-      new_value <- update_fn(current)
-      sparkle_set_state(x$index, new_value)
     }
   } else {
     # Default: access the underlying list element

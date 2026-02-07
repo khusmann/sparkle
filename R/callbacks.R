@@ -28,7 +28,7 @@ wrap_fn <- function(fn) {
   }
 
   # Create a unique ID for this callback
-  callback_id <- paste0("cb_", as.integer(as.numeric(Sys.time()) * 1000), "_", sample.int(10000, 1))
+  callback_id <- paste0("cb_", format(as.numeric(Sys.time()) * 1000, scientific = FALSE), "_", sample.int(10000, 1))
 
   # Store the function in a global registry
   # This will be accessible when the callback is invoked

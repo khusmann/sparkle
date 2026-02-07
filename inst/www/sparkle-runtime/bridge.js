@@ -8,6 +8,7 @@ import ReactDOM from 'react-dom/client';
 import { createComponentFactory } from './component-factory.js';
 import { createEventHandler } from './event-handler.js';
 import { getHookManager, createUseStateBridge } from './hook-manager.js';
+import { getCombinedRSource } from './r-sources.js';
 
 // WebR will be loaded from CDN and available globally
 
@@ -90,112 +91,22 @@ class SparkleBridge {
    * Set up the R environment with necessary functions and state
    */
   async setupREnvironment() {
-    // Install required packages (in production, these would be pre-bundled)
-    // For POC, we'll use base R only
-
-    // Load the sparkle R code
-    // In a real implementation, we'd load from the package
-    // For POC, we'll define essential functions directly
-
+    // Initialize global environments for webR integration
+    // This is the ONLY R code that needs to be in JavaScript
+    // Everything else is loaded from the R package source files
     await this.webR.evalR(`
       # Initialize sparkle environment
       .sparkle_callbacks <- new.env(parent = emptyenv())
       .sparkle_hook_state <- new.env(parent = emptyenv())
       .sparkle_hook_state$hook_index <- 0L
       .sparkle_hook_state$state_values <- list()
-
-      # Define invoke_callback for JS to call
-      invoke_callback <- function(callback_id, args = list()) {
-        if (!exists(callback_id, envir = .sparkle_callbacks)) {
-          stop("Callback not found: ", callback_id)
-        }
-        fn <- get(callback_id, envir = .sparkle_callbacks)
-        do.call(fn, args)
-      }
-
-      # Define wrap_fn for R code to use
-      wrap_fn <- function(fn) {
-        # Use numeric timestamp (no integer conversion to avoid overflow)
-        timestamp <- format(as.numeric(Sys.time()) * 1000, scientific = FALSE, digits = 15)
-        callback_id <- paste0("cb_", timestamp, "_", sample.int(10000, 1))
-        assign(callback_id, fn, envir = .sparkle_callbacks)
-        list(callback_id = callback_id)
-      }
-
-      # Global state accessor functions (for use in callbacks)
-      sparkle_get_state <- function(index) {
-        .sparkle_hook_state$state_values[[index + 1]]
-      }
-
-      sparkle_set_state <- function(index, value) {
-        .sparkle_hook_state$state_values[[index + 1]] <- value
-        # Signal to JS that state changed - return special marker
-        list(
-          sparkle_state_update = TRUE,
-          index = index,
-          value = value
-        )
-      }
-
-      # Define use_state for R code
-      use_state <- function(initial_value) {
-        # Get current hook index
-        hook_idx <- .sparkle_hook_state$hook_index
-        .sparkle_hook_state$hook_index <- hook_idx + 1L
-
-        # Initialize state if first call
-        if (length(.sparkle_hook_state$state_values) < hook_idx + 1) {
-          .sparkle_hook_state$state_values[[hook_idx + 1]] <- initial_value
-        }
-
-        # Get current value
-        current_value <- .sparkle_hook_state$state_values[[hook_idx + 1]]
-
-        # Return state index for use in callbacks
-        list(
-          index = hook_idx,
-          value = current_value
-        )
-      }
-
-      # Reset hook index before each render
-      reset_hooks <- function() {
-        .sparkle_hook_state$hook_index <- 0L
-      }
-
-      # Define tags
-      create_element <- function(tag, ...) {
-        args <- list(...)
-        prop_names <- names(args)
-        if (is.null(prop_names)) prop_names <- rep("", length(args))
-
-        props <- list()
-        children <- list()
-
-        for (i in seq_along(args)) {
-          if (prop_names[i] != "") {
-            props[[prop_names[i]]] <- args[[i]]
-          } else {
-            children <- append(children, list(args[[i]]))
-          }
-        }
-
-        list(tag = tag, props = props, children = children)
-      }
-
-      tags <- list(
-        div = function(...) create_element("div", ...),
-        button = function(...) create_element("button", ...),
-        h1 = function(...) create_element("h1", ...),
-        h2 = function(...) create_element("h2", ...),
-        h3 = function(...) create_element("h3", ...),
-        p = function(...) create_element("p", ...),
-        span = function(...) create_element("span", ...)
-      )
     `);
 
-    // Expose the hook bridge to R
-    // This is a simplified version - in production, we'd use webR's JS proxy
+    // Load all Sparkle R code from bundled package sources
+    // This includes: tags, hooks, callbacks, and all R API functions
+    const rSource = getCombinedRSource();
+    await this.webR.evalR(rSource);
+
     console.log('R environment set up');
   }
 

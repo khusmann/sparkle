@@ -52,22 +52,18 @@ wrap_fn <- function(fn) {
 #' Invoke a registered callback (internal)
 #'
 #' Called by the JavaScript bridge to execute a wrapped callback.
+#' This function is called from JavaScript via webR when an event fires.
+#'
 #' @param callback_id The ID of the callback to invoke
-#' @param args Arguments to pass to the callback
+#' @param args Arguments to pass to the callback (default: empty list)
 #' @return The result of the callback function
 #' @keywords internal
+#' @export
 invoke_callback <- function(callback_id, args = list()) {
-  if (!exists(".sparkle_callbacks", envir = .GlobalEnv)) {
-    stop("Callback registry not initialized")
-  }
-
-  callbacks <- get(".sparkle_callbacks", envir = .GlobalEnv)
-
-  if (!exists(callback_id, envir = callbacks)) {
+  if (!exists(callback_id, envir = .sparkle_callbacks)) {
     stop("Callback not found: ", callback_id)
   }
-
-  fn <- get(callback_id, envir = callbacks)
+  fn <- get(callback_id, envir = .sparkle_callbacks)
   do.call(fn, args)
 }
 

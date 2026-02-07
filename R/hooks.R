@@ -1,13 +1,38 @@
 #' React Hooks for Sparkle Components
 #'
 #' These functions provide access to React's hooks system from R code.
-#' They bridge to the JavaScript runtime via webR.
+#' They manage state that bridges to React via the JavaScript runtime.
 
-# Global state for hook management
-.sparkle_hook_state <- new.env(parent = emptyenv())
-.sparkle_hook_state$counter <- 0L
-.sparkle_hook_state$current_component <- NULL
-.sparkle_hook_state$hook_index <- 0L
+#' Global state accessor functions
+#'
+#' Get the current value of a state variable by its index.
+#' This is used internally by callbacks to access state.
+#'
+#' @param index The index of the state variable
+#' @return The current value of the state
+#' @export
+sparkle_get_state <- function(index) {
+  .sparkle_hook_state$state_values[[index + 1]]
+}
+
+#' Set the value of a state variable
+#'
+#' Update a state variable and signal to JavaScript that state has changed.
+#' This triggers a re-render of the component.
+#'
+#' @param index The index of the state variable
+#' @param value The new value
+#' @return A list signaling the state update to JavaScript
+#' @export
+sparkle_set_state <- function(index, value) {
+  .sparkle_hook_state$state_values[[index + 1]] <- value
+  # Signal to JS that state changed - return special marker
+  list(
+    sparkle_state_update = TRUE,
+    index = index,
+    value = value
+  )
+}
 
 #' Use State Hook
 #'
@@ -17,8 +42,8 @@
 #'
 #' @param initial_value The initial value for the state variable
 #' @return A list with two elements:
+#'   \item{index}{The index of this state variable (for use in callbacks)}
 #'   \item{value}{The current state value}
-#'   \item{set}{A function to update the state}
 #' @export
 #' @examples
 #' \dontrun{
@@ -26,45 +51,34 @@
 #'   count <- use_state(0)
 #'   tags$div(
 #'     tags$h1(paste("Count:", count$value)),
-#'     tags$button("Increment", on_click = wrap_fn(\() count$set(count$value + 1)))
+#'     tags$button(
+#'       "Increment",
+#'       on_click = wrap_fn(function() {
+#'         current <- sparkle_get_state(count$index)
+#'         sparkle_set_state(count$index, current + 1)
+#'       })
+#'     )
 #'   )
 #' }
 #' }
 use_state <- function(initial_value) {
-  # Get the current hook index
+  # Get current hook index
   hook_idx <- .sparkle_hook_state$hook_index
   .sparkle_hook_state$hook_index <- hook_idx + 1L
 
-  # Check if we're running in browser context (webR)
-  if (exists(".sparkle_bridge", envir = .GlobalEnv)) {
-    # In browser: use the JavaScript bridge
-    bridge <- get(".sparkle_bridge", envir = .GlobalEnv)
-
-    # Call JS bridge to get/set state
-    # The JS side will call React.useState and store the reference
-    state_obj <- bridge$use_state(initial_value, hook_idx)
-
-    return(state_obj)
-  } else {
-    # Not in browser: return a mock for development/testing
-    message("use_state called outside browser context (mock mode)")
-
-    # Create a simple closure-based state for testing
-    current_value <- initial_value
-
-    list(
-      value = current_value,
-      set = function(new_value) {
-        if (is.function(new_value)) {
-          # Updater function: new_value(current_value)
-          current_value <<- new_value(current_value)
-        } else {
-          current_value <<- new_value
-        }
-        message("State updated to: ", current_value)
-      }
-    )
+  # Initialize state if first call
+  if (length(.sparkle_hook_state$state_values) < hook_idx + 1) {
+    .sparkle_hook_state$state_values[[hook_idx + 1]] <- initial_value
   }
+
+  # Get current value
+  current_value <- .sparkle_hook_state$state_values[[hook_idx + 1]]
+
+  # Return state index for use in callbacks
+  list(
+    index = hook_idx,
+    value = current_value
+  )
 }
 
 #' Reset hook index (internal)
@@ -72,6 +86,6 @@ use_state <- function(initial_value) {
 #' Called before each component render to reset the hook counter.
 #' This ensures hooks are called in consistent order.
 #' @keywords internal
-reset_hook_index <- function() {
+reset_hooks <- function() {
   .sparkle_hook_state$hook_index <- 0L
 }

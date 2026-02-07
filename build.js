@@ -15,6 +15,20 @@ if (!fs.existsSync(outDir)) {
   fs.mkdirSync(outDir, { recursive: true });
 }
 
+// Plugin to load .R files as raw text
+const rFilePlugin = {
+  name: 'r-files',
+  setup(build) {
+    build.onLoad({ filter: /\.R$/ }, async (args) => {
+      const text = await fs.promises.readFile(args.path, 'utf8');
+      return {
+        contents: `export default ${JSON.stringify(text)}`,
+        loader: 'js',
+      };
+    });
+  },
+};
+
 async function build() {
   try {
     console.log('Building Sparkle runtime...');
@@ -28,6 +42,7 @@ async function build() {
       target: 'es2020',
       minify: false, // Set to true for production
       sourcemap: true,
+      plugins: [rFilePlugin],
       define: {
         'process.env.NODE_ENV': '"production"'
       },

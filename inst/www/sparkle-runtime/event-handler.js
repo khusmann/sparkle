@@ -74,46 +74,63 @@ class EventHandler {
         // Extract serializable event data
         const eventData = this.extractEventData(event);
 
-        // Create R list structure using webR's RObject API
-        const listData = {
-          type: eventData.type || null
+        // Build R list structure directly using evalR for proper type conversion
+        // Escape strings for R
+        const escapeForR = (str) => {
+          if (str === null || str === undefined) return 'NULL';
+          return `"${String(str).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
         };
+
+        // Build R code to create the event list
+        let rCode = 'list(';
+        const parts = [];
+
+        // Add type
+        parts.push(`type = ${escapeForR(eventData.type)}`);
 
         // Add target data if present
         if (eventData.target) {
-          const targetList = await new this.webR.RList({
-            value: eventData.target.value || null,
-            checked: eventData.target.checked !== null ? eventData.target.checked : null,
-            name: eventData.target.name || null,
-            type: eventData.target.type || null,
-            id: eventData.target.id || null
-          });
-          listData.target = targetList;
+          const targetParts = [];
+          if (eventData.target.value !== null && eventData.target.value !== undefined) {
+            targetParts.push(`value = ${escapeForR(eventData.target.value)}`);
+          } else {
+            targetParts.push('value = NULL');
+          }
+          if (eventData.target.checked !== null && eventData.target.checked !== undefined) {
+            targetParts.push(`checked = ${eventData.target.checked ? 'TRUE' : 'FALSE'}`);
+          } else {
+            targetParts.push('checked = NULL');
+          }
+          targetParts.push(`name = ${escapeForR(eventData.target.name)}`);
+          targetParts.push(`type = ${escapeForR(eventData.target.type)}`);
+          targetParts.push(`id = ${escapeForR(eventData.target.id)}`);
+          parts.push(`target = list(${targetParts.join(', ')})`);
         }
 
         // Add keyboard event properties if present
         if (eventData.key !== undefined) {
-          listData.key = eventData.key;
-          listData.keyCode = eventData.keyCode;
-          listData.shiftKey = eventData.shiftKey;
-          listData.ctrlKey = eventData.ctrlKey;
-          listData.altKey = eventData.altKey;
-          listData.metaKey = eventData.metaKey;
+          parts.push(`key = ${escapeForR(eventData.key)}`);
+          parts.push(`keyCode = ${eventData.keyCode || 'NULL'}`);
+          parts.push(`shiftKey = ${eventData.shiftKey ? 'TRUE' : 'FALSE'}`);
+          parts.push(`ctrlKey = ${eventData.ctrlKey ? 'TRUE' : 'FALSE'}`);
+          parts.push(`altKey = ${eventData.altKey ? 'TRUE' : 'FALSE'}`);
+          parts.push(`metaKey = ${eventData.metaKey ? 'TRUE' : 'FALSE'}`);
         }
 
         // Add mouse event properties if present
         if (eventData.clientX !== undefined) {
-          listData.clientX = eventData.clientX;
-          listData.clientY = eventData.clientY;
-          listData.button = eventData.button;
+          parts.push(`clientX = ${eventData.clientX}`);
+          parts.push(`clientY = ${eventData.clientY}`);
+          parts.push(`button = ${eventData.button}`);
         }
 
-        const eventList = await new this.webR.RList(listData);
+        rCode += parts.join(', ') + ')';
 
-        // Execute the R callback via webR with event data
+        // Execute the R callback with the constructed event data
         const result = await this.webR.evalR(`
-          invoke_callback("${callbackId}", list(e = .GlobalEnv$.webr_event_data))
-        `, { env: { '.webr_event_data': eventList } });
+          e <- ${rCode}
+          invoke_callback("${callbackId}", list(e = e))
+        `);
 
         // Convert the result to JS
         const jsResult = await this.bridge.convertRObject(result);

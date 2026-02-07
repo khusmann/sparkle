@@ -5,13 +5,13 @@ library(sparkle)
 
 TodoApp <- function() {
   todos <- use_state(list())
-  counter <- use_state(1)
+  input_text <- use_state("")
 
   # Helper to create a todo item
-  create_todo <- function(number) {
+  create_todo <- function(text) {
     list(
       id = as.numeric(Sys.time()) * 1000 + sample.int(1000, 1),
-      text = paste("Task", number),
+      text = text,
       completed = FALSE
     )
   }
@@ -21,14 +21,24 @@ TodoApp <- function() {
 
     tags$h1("My TODO List ✨"),
 
-    # Add button section
+    # Add input section
     tags$div(
       class_name = "todo-input",
+      tags$input(
+        type = "text",
+        value = input_text$value,
+        placeholder = "Enter a new task...",
+        on_change = \(e) {
+          input_text$set(e$target$value)
+        }
+      ),
       tags$button(
-        "Add New Task",
+        "Add Task",
         on_click = \() {
-          todos$update(\(t) c(t, list(create_todo(counter$value))))
-          counter$set(counter$value + 1)
+          if (nchar(input_text$value) > 0) {
+            todos$update(\(t) c(t, list(create_todo(input_text$value))))
+            input_text$set("")
+          }
         }
       )
     ),

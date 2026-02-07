@@ -208,6 +208,11 @@ class SparkleBridge {
 
     // Check if it's an R object with type property
     if (jsObj && typeof jsObj === 'object') {
+      // Handle R NULL type
+      if (jsObj.type === 'null') {
+        return null;
+      }
+
       // Handle R atomic types (character, numeric, integer, logical)
       if (jsObj.type && jsObj.values && Array.isArray(jsObj.values)) {
         if (jsObj.type === 'list') {

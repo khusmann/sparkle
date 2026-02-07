@@ -115,7 +115,9 @@ class SparkleBridge {
 
       # Define wrap_fn for R code to use
       wrap_fn <- function(fn) {
-        callback_id <- paste0("cb_", as.integer(as.numeric(Sys.time()) * 1000), "_", sample.int(10000, 1))
+        # Use numeric timestamp (no integer conversion to avoid overflow)
+        timestamp <- format(as.numeric(Sys.time()) * 1000, scientific = FALSE, digits = 15)
+        callback_id <- paste0("cb_", timestamp, "_", sample.int(10000, 1))
         assign(callback_id, fn, envir = .sparkle_callbacks)
         list(callback_id = callback_id)
       }

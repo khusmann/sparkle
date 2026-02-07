@@ -57,6 +57,16 @@ invoke_callback <- function(callback_id, args = list()) {
     stop("Callback not found: ", callback_id)
   }
   fn <- get(callback_id, envir = .sparkle_callbacks)
+
+  # Check if function accepts arguments
+  fn_formals <- formals(fn)
+
+  # If function has no parameters and we're trying to pass args, call without args
+  if (length(fn_formals) == 0 && length(args) > 0) {
+    return(fn())
+  }
+
+  # Otherwise use do.call to pass arguments
   do.call(fn, args)
 }
 

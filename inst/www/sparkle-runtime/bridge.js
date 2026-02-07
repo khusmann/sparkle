@@ -223,60 +223,52 @@ class SparkleBridge {
   render() {
     const SparkleApp = () => {
       const [renderCount, setRenderCount] = React.useState(0);
+      const [rOutput, setROutput] = React.useState(null);
+      const [isUpdating, setIsUpdating] = React.useState(false);
+      const isFirstRender = React.useRef(true);
 
       // Store rerender callback for state updates
       this.rerenderCallback = () => {
         setRenderCount(c => c + 1);
       };
 
-      // Create a React component that calls the R function
-      const RComponent = () => {
+      React.useEffect(() => {
         // Reset hook index before rendering
         this.hookManager.reset();
 
-        // We need to create a mechanism to call R and get the virtual DOM
-        // For POC, we'll use a ref to store the current R component output
-        const [rOutput, setROutput] = React.useState(null);
-        const [isUpdating, setIsUpdating] = React.useState(false);
-        const isFirstRender = React.useRef(true);
-
-        React.useEffect(() => {
-          // Set updating state (but not on first render where we want true loading)
-          if (!isFirstRender.current) {
-            setIsUpdating(true);
-          }
-
-          // Call the R component function
-          this.callRComponent()
-            .then(output => {
-              setROutput(output);
-              setIsUpdating(false);
-              isFirstRender.current = false;
-            })
-            .catch(error => {
-              console.error('Error calling R component:', error);
-              setIsUpdating(false);
-              isFirstRender.current = false;
-            });
-        }, [renderCount]);
-
-        if (!rOutput) {
-          return React.createElement('div', null, 'Loading component...');
+        // Set updating state (but not on first render where we want true loading)
+        if (!isFirstRender.current) {
+          setIsUpdating(true);
         }
 
-        // Convert R output to React elements
-        const content = this.componentFactory.toReactElement(rOutput);
+        // Call the R component function
+        this.callRComponent()
+          .then(output => {
+            setROutput(output);
+            setIsUpdating(false);
+            isFirstRender.current = false;
+          })
+          .catch(error => {
+            console.error('Error calling R component:', error);
+            setIsUpdating(false);
+            isFirstRender.current = false;
+          });
+      }, [renderCount]);
 
-        // Wrap in a div with opacity transition during updates
-        return React.createElement('div', {
-          style: {
-            opacity: isUpdating ? 0.6 : 1,
-            transition: 'opacity 0.15s ease-in-out'
-          }
-        }, content);
-      };
+      if (!rOutput) {
+        return React.createElement('div', null, 'Loading component...');
+      }
 
-      return React.createElement(RComponent);
+      // Convert R output to React elements
+      const content = this.componentFactory.toReactElement(rOutput);
+
+      // Wrap in a div with opacity transition during updates
+      return React.createElement('div', {
+        style: {
+          opacity: isUpdating ? 0.6 : 1,
+          transition: 'opacity 0.15s ease-in-out'
+        }
+      }, content);
     };
 
     // Render the app

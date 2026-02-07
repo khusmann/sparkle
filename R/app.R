@@ -29,24 +29,38 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
   component_code <- deparse(component)
   component_code_str <- paste(component_code, collapse = "\n")
 
-  # Get the path to the inst/www directory
-  package_path <- system.file(package = "sparkle")
-  if (package_path == "") {
-    # Development mode: use the current package directory
-    package_path <- getwd()
-  }
+  # Get the path to the www directory
+  # When installed: system.file finds files in inst/ promoted to package root
+  # When not installed (dev mode): we need to find inst/www in the source tree
 
-  www_dir <- file.path(package_path, "inst", "www")
+  www_dir <- system.file("www", package = "sparkle")
 
-  if (!dir.exists(www_dir)) {
-    stop("Web assets directory not found: ", www_dir,
-         "\nMake sure the package is properly installed or you're in the package directory.")
+  if (www_dir == "" || !dir.exists(www_dir)) {
+    # Development mode: look for inst/www relative to package root
+    # Try to find the package root by looking for DESCRIPTION file
+    pkg_root <- getwd()
+
+    # Walk up directory tree to find DESCRIPTION file
+    max_depth <- 5
+    for (i in 1:max_depth) {
+      if (file.exists(file.path(pkg_root, "DESCRIPTION"))) {
+        www_dir <- file.path(pkg_root, "inst", "www")
+        break
+      }
+      pkg_root <- dirname(pkg_root)
+    }
+
+    if (!dir.exists(www_dir)) {
+      stop("Web assets directory not found: ", www_dir,
+           "\nMake sure the package is properly installed or you're in the package directory.",
+           "\nCurrent working directory: ", getwd())
+    }
   }
 
   # Check if bundle.js exists
   bundle_path <- file.path(www_dir, "bundle.js")
   if (!file.exists(bundle_path)) {
-    stop("JavaScript bundle not found. Please run: npm install && npm run build")
+    stop("JavaScript bundle not found. Please run: pnpm install && pnpm run build")
   }
 
   message("Starting Sparkle app on http://", host, ":", port)

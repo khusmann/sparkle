@@ -40,8 +40,6 @@ class SparkleBridge {
 
       this.webR = new WebR({
         baseUrl: 'https://webr.r-wasm.org/latest/',
-        // Enable IndexedDB caching to persist packages across page loads
-        createLazyFilesystem: true,
       });
 
       await this.webR.init();
@@ -122,40 +120,17 @@ class SparkleBridge {
    * Install required packages in webR
    */
   async installPackages(packages) {
-    console.log('Checking packages:', packages);
+    console.log('Installing packages:', packages);
 
     // Update loading message
     const loadingEl = document.getElementById('loading');
     if (loadingEl) {
-      loadingEl.innerHTML = `Checking packages: ${packages.join(', ')}...`;
+      loadingEl.innerHTML = `Installing packages: ${packages.join(', ')}...`;
     }
 
     try {
-      // Check which packages are not yet installed
-      const packagesToInstall = [];
-
-      for (const pkg of packages) {
-        const result = await this.webR.evalR(`requireNamespace("${pkg}", quietly = TRUE)`);
-        const isInstalled = await result.toBoolean();
-
-        if (!isInstalled) {
-          packagesToInstall.push(pkg);
-        } else {
-          console.log(`Package ${pkg} already installed (cached)`);
-        }
-      }
-
-      // Only install packages that aren't already available
-      if (packagesToInstall.length > 0) {
-        console.log('Installing packages:', packagesToInstall);
-        if (loadingEl) {
-          loadingEl.innerHTML = `Installing packages: ${packagesToInstall.join(', ')}...`;
-        }
-        await this.webR.installPackages(packagesToInstall);
-        console.log('Packages installed successfully');
-      } else {
-        console.log('All packages already installed');
-      }
+      await this.webR.installPackages(packages);
+      console.log('Packages installed successfully');
     } catch (error) {
       console.error('Error installing packages:', error);
       throw new Error(`Failed to install packages: ${error.message}`);

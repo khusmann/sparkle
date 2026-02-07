@@ -83,7 +83,6 @@ StyledDemo <- function() {
         )
       )
     )
-  )
 
   # Wrap with style tag AFTER all styled components have registered
   tags$div(

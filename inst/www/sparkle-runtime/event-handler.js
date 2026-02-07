@@ -3,8 +3,9 @@
  */
 
 class EventHandler {
-  constructor(webR) {
+  constructor(webR, bridge) {
     this.webR = webR;
+    this.bridge = bridge;
     this.pendingCallbacks = new Map();
     this.callbackCounter = 0;
   }
@@ -31,13 +32,20 @@ class EventHandler {
 
         // Execute the R callback via webR
         const result = await this.webR.evalR(`
-          sparkle:::invoke_callback("${callbackId}", list())
+          invoke_callback("${callbackId}", list())
         `);
 
-        // If the callback returned a value, it might be a state update
-        // The R side will handle calling count$set() directly
+        // Convert the result to JS
+        const jsResult = await this.bridge.convertRObject(result);
 
-        return result;
+        // Check if this is a state update signal
+        if (jsResult && jsResult.sparkle_state_update === true) {
+          console.log('State update detected:', jsResult);
+          // Trigger a re-render
+          this.bridge.triggerRerender();
+        }
+
+        return jsResult;
       } catch (error) {
         console.error('Error executing R callback:', error);
         throw error;
@@ -61,6 +69,6 @@ class EventHandler {
 /**
  * Create an event handler manager
  */
-export function createEventHandler(webR) {
-  return new EventHandler(webR);
+export function createEventHandler(webR, bridge) {
+  return new EventHandler(webR, bridge);
 }

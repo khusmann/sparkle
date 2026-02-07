@@ -45,7 +45,7 @@ class SparkleBridge {
       console.log('webR initialized');
 
       // Create managers
-      this.eventHandler = createEventHandler(this.webR);
+      this.eventHandler = createEventHandler(this.webR, this);
       this.componentFactory = createComponentFactory(this.eventHandler);
       this.hookManager = getHookManager();
 
@@ -102,6 +102,7 @@ class SparkleBridge {
       .sparkle_callbacks <- new.env(parent = emptyenv())
       .sparkle_hook_state <- new.env(parent = emptyenv())
       .sparkle_hook_state$hook_index <- 0L
+      .sparkle_hook_state$state_values <- list()
 
       # Define invoke_callback for JS to call
       invoke_callback <- function(callback_id, args = list()) {
@@ -114,35 +115,44 @@ class SparkleBridge {
 
       # Define wrap_fn for R code to use
       wrap_fn <- function(fn) {
-        callback_id <- paste0("cb_", as.integer(as.numeric(Sys.time()) * 1000))
+        callback_id <- paste0("cb_", as.integer(as.numeric(Sys.time()) * 1000), "_", sample.int(10000, 1))
         assign(callback_id, fn, envir = .sparkle_callbacks)
         list(callback_id = callback_id)
       }
 
+      # Global state accessor functions (for use in callbacks)
+      sparkle_get_state <- function(index) {
+        .sparkle_hook_state$state_values[[index + 1]]
+      }
+
+      sparkle_set_state <- function(index, value) {
+        .sparkle_hook_state$state_values[[index + 1]] <- value
+        # Signal to JS that state changed - return special marker
+        list(
+          sparkle_state_update = TRUE,
+          index = index,
+          value = value
+        )
+      }
+
       # Define use_state for R code
-      # For POC: simplified version that stores state in R
-      # TODO: Bridge to React's useState for proper reactivity
       use_state <- function(initial_value) {
         # Get current hook index
         hook_idx <- .sparkle_hook_state$hook_index
         .sparkle_hook_state$hook_index <- hook_idx + 1L
 
         # Initialize state if first call
-        state_key <- paste0("state_", hook_idx)
-        if (!exists(state_key, envir = .sparkle_hook_state)) {
-          assign(state_key, initial_value, envir = .sparkle_hook_state)
+        if (length(.sparkle_hook_state$state_values) < hook_idx + 1) {
+          .sparkle_hook_state$state_values[[hook_idx + 1]] <- initial_value
         }
 
         # Get current value
-        current_value <- get(state_key, envir = .sparkle_hook_state)
+        current_value <- .sparkle_hook_state$state_values[[hook_idx + 1]]
 
-        # Return state object with value and setter
+        # Return state index for use in callbacks
         list(
-          value = current_value,
-          set = function(new_value) {
-            assign(state_key, new_value, envir = .sparkle_hook_state)
-            # TODO: Trigger re-render via React
-          }
+          index = hook_idx,
+          value = current_value
         )
       }
 
@@ -199,11 +209,25 @@ class SparkleBridge {
   }
 
   /**
+   * Trigger a re-render of the component
+   */
+  triggerRerender() {
+    if (this.rerenderCallback) {
+      this.rerenderCallback();
+    }
+  }
+
+  /**
    * Render the Sparkle app
    */
   render() {
     const SparkleApp = () => {
       const [renderCount, setRenderCount] = React.useState(0);
+
+      // Store rerender callback for state updates
+      this.rerenderCallback = () => {
+        setRenderCount(c => c + 1);
+      };
 
       // Create a React component that calls the R function
       const RComponent = () => {

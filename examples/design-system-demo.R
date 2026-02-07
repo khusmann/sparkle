@@ -28,10 +28,7 @@ DesignSystemDemo <- function() {
   }
 
   # Render with injected styles
-  tags$div(
-    create_style_tag(),  # Inject all registered CSS
-
-    ui$Container(
+  result <- ui$Container(
       max_width = "800px",
 
       # Header section
@@ -173,6 +170,11 @@ DesignSystemDemo <- function() {
         )
       )
     )
+
+  # Wrap with style tag AFTER all components have registered their styles
+  tags$div(
+    result,
+    create_style_tag()  # Inject CSS at the end
   )
 }
 

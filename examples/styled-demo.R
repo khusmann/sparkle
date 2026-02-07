@@ -57,10 +57,8 @@ StyledDemo <- function() {
     margin_top = "20px"
   )
 
-  # Render component with injected styles
-  tags$div(
-    create_style_tag(),  # Inject all registered CSS
-    Container(
+  # Render component
+  result <- Container(
       tags$h1(
         "Styled Components Demo ✨",
         style = list(text_align = "center", color = "#374151")
@@ -85,6 +83,12 @@ StyledDemo <- function() {
         )
       )
     )
+  )
+
+  # Wrap with style tag AFTER all styled components have registered
+  tags$div(
+    result,
+    create_style_tag()  # Inject CSS at the end
   )
 }
 

@@ -3,6 +3,44 @@
 #' Create virtual DOM descriptions for HTML elements. These functions return
 #' list structures that the Sparkle JavaScript bridge converts into React elements.
 #'
+#' @details
+#' The \code{tags} list contains functions for creating common HTML elements:
+#' \itemize{
+#'   \item \code{tags$div(...)} - Create a div element
+#'   \item \code{tags$button(...)} - Create a button element
+#'   \item \code{tags$h1(...)}, \code{tags$h2(...)}, \code{tags$h3(...)} - Create heading elements
+#'   \item \code{tags$p(...)} - Create a paragraph element
+#'   \item \code{tags$span(...)} - Create a span element
+#'   \item \code{tags$input(...)} - Create an input element
+#'   \item \code{tags$label(...)} - Create a label element
+#' }
+#'
+#' @param ... For tag functions: named arguments become props (attributes),
+#'   unnamed arguments become children (content)
+#'
+#' @return A list with class \code{sparkle_element} representing a virtual DOM element
+#'
+#' @examples
+#' \dontrun{
+#' # Simple element
+#' tags$div("Hello, world!")
+#'
+#' # Element with props
+#' tags$div(class_name = "container", "Content here")
+#'
+#' # Nested elements
+#' tags$div(
+#'   tags$h1("Title"),
+#'   tags$p("Paragraph text")
+#' )
+#'
+#' # Element with event handler
+#' tags$button(
+#'   "Click me",
+#'   on_click = wrap_fn(\() print("Clicked!"))
+#' )
+#' }
+#'
 #' @name tags
 #' @export
 tags <- list()
@@ -12,6 +50,7 @@ tags <- list()
 #' @param tag Character string specifying the HTML tag name
 #' @param ... Named arguments become props, unnamed arguments become children
 #' @return A list representing a virtual DOM element
+#' @keywords internal
 create_element <- function(tag, ...) {
   args <- list(...)
 
@@ -44,43 +83,22 @@ create_element <- function(tag, ...) {
   )
 }
 
-#' @rdname tags
-#' @export
+# Define tag functions (not individually documented to avoid roxygen2 issues)
 tags$div <- function(...) create_element("div", ...)
-
-#' @rdname tags
-#' @export
 tags$button <- function(...) create_element("button", ...)
-
-#' @rdname tags
-#' @export
 tags$h1 <- function(...) create_element("h1", ...)
-
-#' @rdname tags
-#' @export
 tags$h2 <- function(...) create_element("h2", ...)
-
-#' @rdname tags
-#' @export
 tags$h3 <- function(...) create_element("h3", ...)
-
-#' @rdname tags
-#' @export
 tags$p <- function(...) create_element("p", ...)
-
-#' @rdname tags
-#' @export
 tags$span <- function(...) create_element("span", ...)
-
-#' @rdname tags
-#' @export
 tags$input <- function(...) create_element("input", ...)
-
-#' @rdname tags
-#' @export
 tags$label <- function(...) create_element("label", ...)
 
 #' Print method for sparkle elements
+#'
+#' @param x A sparkle_element object
+#' @param ... Additional arguments (ignored)
+#' @return Invisibly returns the input object
 #' @export
 print.sparkle_element <- function(x, ...) {
   cat("<sparkle_element:", x$tag, ">\n")

@@ -72,6 +72,10 @@ invoke_callback <- function(callback_id, args = list()) {
 }
 
 #' Print method for sparkle callbacks
+#'
+#' @param x A sparkle_callback object
+#' @param ... Additional arguments (ignored)
+#' @return Invisibly returns the input object
 #' @export
 print.sparkle_callback <- function(x, ...) {
   cat("<sparkle_callback:", x$callback_id, ">\n")

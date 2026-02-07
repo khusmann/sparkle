@@ -4,6 +4,7 @@
 .RData
 .Ruserdata
 *.Rproj
+!sparkle.Rproj
 
 # Node
 node_modules/

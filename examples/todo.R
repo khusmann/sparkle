@@ -2,10 +2,11 @@
 # Demonstrates state management with lists and multiple state variables
 
 library(sparkle)
+library(zeallot)
 
 TodoApp <- function() {
-  todos <- use_state(list())
-  input_text <- use_state("")
+  c(todos, setTodos) %<-% use_state(list())
+  c(inputText, setInputText) %<-% use_state("")
 
   # Helper to create a todo item
   create_todo <- function(text) {
@@ -26,18 +27,18 @@ TodoApp <- function() {
       class_name = "todo-input",
       tags$input(
         type = "text",
-        value = input_text$value,
+        value = inputText(),
         placeholder = "Enter a new task...",
         on_change = \(e) {
-          input_text$set(e$target$value)
+          setInputText(e$target$value)
         }
       ),
       tags$button(
         "Add Task",
         on_click = \() {
-          if (nchar(input_text$value) > 0) {
-            todos$set(\(t) c(t, list(create_todo(input_text$value))))
-            input_text$set("")
+          if (nchar(inputText()) > 0) {
+            setTodos(\(t) c(t, list(create_todo(inputText()))))
+            setInputText("")
           }
         }
       )
@@ -46,18 +47,18 @@ TodoApp <- function() {
     # Todo list
     tags$div(
       class_name = "todo-list",
-      if (length(todos$value) == 0) {
+      if (length(todos()) == 0) {
         tags$p("No todos yet! Add one above.")
       } else {
-        lapply(seq_along(todos$value), \(i) {
-          todo <- todos$value[[i]]
+        lapply(seq_along(todos()), \(i) {
+          todo <- todos()[[i]]
           tags$div(
             class_name = "todo-item",
             tags$input(
               type = "checkbox",
               checked = todo$completed,
               on_change = \() {
-                todos$set(\(t) {
+                setTodos(\(t) {
                   t[[i]]$completed <- !t[[i]]$completed
                   t
                 })
@@ -69,7 +70,7 @@ TodoApp <- function() {
             ),
             tags$button(
               "Delete",
-              on_click = \() todos$set(\(t) t[-i])
+              on_click = \() setTodos(\(t) t[-i])
             )
           )
         })
@@ -80,16 +81,16 @@ TodoApp <- function() {
     tags$div(
       class_name = "todo-summary",
       tags$p(paste(
-        length(todos$value), "total,",
-        sum(vapply(todos$value, \(t) t$completed, logical(1))), "completed"
+        length(todos()), "total,",
+        sum(vapply(todos(), \(t) t$completed, logical(1))), "completed"
       )),
       tags$button(
         "Clear Completed",
-        on_click = \() todos$set(\(t) Filter(\(todo) !todo$completed, t))
+        on_click = \() setTodos(\(t) Filter(\(todo) !todo$completed, t))
       ),
       tags$button(
         "Clear All",
-        on_click = \() todos$set(list())
+        on_click = \() setTodos(list())
       )
     )
   )

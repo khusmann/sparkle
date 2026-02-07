@@ -40,28 +40,33 @@ sparkle_set_state <- function(index, value) {
 #' The state is managed by React in JavaScript, and this function
 #' provides an R interface to it.
 #'
+#' Designed to work with the zeallot package for destructuring assignment:
+#' c(value, setValue) %<-% use_state(initial)
+#'
 #' @param initial_value The initial value for the state variable
-#' @return A sparkle_state object with:
-#'   \item{value}{The current state value (read-only)}
-#'   \item{set(new_value_or_fn)}{Method to update state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
+#' @return A 2-element list containing:
+#'   \item{1}{A getter function that returns the current state value}
+#'   \item{2}{A setter function(new_value_or_fn) that updates state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
 #' @export
 #' @examples
 #' \dontrun{
+#' library(zeallot)
+#'
 #' Counter <- function() {
-#'   count <- use_state(0)
+#'   c(count, setCount) %<-% use_state(0)
 #'   tags$div(
-#'     tags$h1(paste("Count:", count$value)),
-#'     tags$button("Increment", on_click = \() count$set(count$value + 1)),
-#'     tags$button("Reset", on_click = \() count$set(0))
+#'     tags$h1(paste("Count:", count())),
+#'     tags$button("Increment", on_click = \() setCount(count() + 1)),
+#'     tags$button("Reset", on_click = \() setCount(0))
 #'   )
 #' }
 #'
-#' # Functional updates (pass a function to $set)
+#' # Functional updates (pass a function to setter)
 #' TodoApp <- function() {
-#'   todos <- use_state(list())
+#'   c(todos, setTodos) %<-% use_state(list())
 #'   tags$button(
 #'     "Add Item",
-#'     on_click = \() todos$set(\(t) c(t, list("New item")))
+#'     on_click = \() setTodos(\(t) c(t, list("New item")))
 #'   )
 #' }
 #' }
@@ -75,17 +80,26 @@ use_state <- function(initial_value) {
     .sparkle_hook_state$state_values[[hook_idx + 1]] <- initial_value
   }
 
-  # Get current value
-  current_value <- .sparkle_hook_state$state_values[[hook_idx + 1]]
+  # Create getter function
+  getter <- function() {
+    sparkle_get_state(hook_idx)
+  }
 
-  # Return S3 class with state methods
-  structure(
-    list(
-      index = hook_idx,
-      value = current_value
-    ),
-    class = "sparkle_state"
-  )
+  # Create setter function
+  setter <- function(new_value_or_fn) {
+    if (is.function(new_value_or_fn)) {
+      # Functional update: apply function to current value
+      current <- sparkle_get_state(hook_idx)
+      new_value <- new_value_or_fn(current)
+      sparkle_set_state(hook_idx, new_value)
+    } else {
+      # Direct update: set to new value
+      sparkle_set_state(hook_idx, new_value_or_fn)
+    }
+  }
+
+  # Return list for zeallot unpacking
+  list(getter, setter)
 }
 
 #' Reset hook index (internal)
@@ -95,63 +109,4 @@ use_state <- function(initial_value) {
 #' @keywords internal
 reset_hooks <- function() {
   .sparkle_hook_state$hook_index <- 0L
-}
-
-#' Access sparkle_state methods
-#'
-#' Provides method access for state objects returned by use_state().
-#'
-#' @param x A sparkle_state object
-#' @param name The method or field name being accessed
-#' @return For 'set': a function(new_value_or_fn) that updates state.
-#'   If passed a function, applies it to current value (like React's setState).
-#'   If passed any other value, sets state directly.
-#'   For other names: the underlying list element
-#' @export
-`$.sparkle_state` <- function(x, name) {
-  if (name == "set") {
-    # Return a setter function bound to this state's index
-    # Handles both direct values and functional updates (like React)
-    function(new_value_or_fn) {
-      if (is.function(new_value_or_fn)) {
-        # Functional update: apply function to current value
-        current <- sparkle_get_state(x$index)
-        new_value <- new_value_or_fn(current)
-        sparkle_set_state(x$index, new_value)
-      } else {
-        # Direct update: set to new value
-        sparkle_set_state(x$index, new_value_or_fn)
-      }
-    }
-  } else {
-    # Default: access the underlying list element
-    NextMethod()
-  }
-}
-
-#' Prevent direct assignment to sparkle_state fields
-#'
-#' Prevents users from directly modifying state object fields,
-#' which would bypass React's re-render mechanism.
-#'
-#' @param x A sparkle_state object
-#' @param name The field name being assigned to
-#' @param value The value being assigned
-#' @export
-`$<-.sparkle_state` <- function(x, name, value) {
-  if (name %in% c("value", "index")) {
-    stop("Cannot directly assign to '", name, "'. Use $set() method instead.")
-  }
-  NextMethod()
-}
-
-#' Print method for sparkle_state objects
-#'
-#' @param x A sparkle_state object
-#' @param ... Additional arguments (ignored)
-#' @return Invisibly returns the input object
-#' @export
-print.sparkle_state <- function(x, ...) {
-  cat("<sparkle_state: value=", deparse(x$value), ">\n", sep = "")
-  invisible(x)
 }

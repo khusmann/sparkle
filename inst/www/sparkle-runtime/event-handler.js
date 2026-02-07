@@ -68,10 +68,7 @@ class EventHandler {
     // Return an async event handler
     return async (event) => {
       try {
-        // Prevent default for some events (can be made configurable)
-        // event.preventDefault();
-
-        // Extract serializable event data
+        // Extract event data immediately (before React pools the event)
         const eventData = this.extractEventData(event);
 
         // Build R list structure directly using evalR for proper type conversion

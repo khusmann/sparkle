@@ -28,7 +28,7 @@ wrap_fn <- function(fn) {
   }
 
   # Create a unique ID for this callback
-  callback_id <- paste0("cb_", as.integer(Sys.time() * 1000), "_", sample.int(10000, 1))
+  callback_id <- paste0("cb_", as.integer(as.numeric(Sys.time()) * 1000), "_", sample.int(10000, 1))
 
   # Store the function in a global registry
   # This will be accessible when the callback is invoked
@@ -40,10 +40,10 @@ wrap_fn <- function(fn) {
   assign(callback_id, fn, envir = callbacks)
 
   # Return a structure that the JS bridge can recognize
+  # Only return the callback_id - the function is already stored in the registry
   structure(
     list(
-      callback_id = callback_id,
-      fn = fn
+      callback_id = callback_id
     ),
     class = "sparkle_callback"
   )

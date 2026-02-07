@@ -114,9 +114,41 @@ class SparkleBridge {
 
       # Define wrap_fn for R code to use
       wrap_fn <- function(fn) {
-        callback_id <- paste0("cb_", as.integer(Sys.time() * 1000))
+        callback_id <- paste0("cb_", as.integer(as.numeric(Sys.time()) * 1000))
         assign(callback_id, fn, envir = .sparkle_callbacks)
         list(callback_id = callback_id)
+      }
+
+      # Define use_state for R code
+      # For POC: simplified version that stores state in R
+      # TODO: Bridge to React's useState for proper reactivity
+      use_state <- function(initial_value) {
+        # Get current hook index
+        hook_idx <- .sparkle_hook_state$hook_index
+        .sparkle_hook_state$hook_index <- hook_idx + 1L
+
+        # Initialize state if first call
+        state_key <- paste0("state_", hook_idx)
+        if (!exists(state_key, envir = .sparkle_hook_state)) {
+          assign(state_key, initial_value, envir = .sparkle_hook_state)
+        }
+
+        # Get current value
+        current_value <- get(state_key, envir = .sparkle_hook_state)
+
+        # Return state object with value and setter
+        list(
+          value = current_value,
+          set = function(new_value) {
+            assign(state_key, new_value, envir = .sparkle_hook_state)
+            # TODO: Trigger re-render via React
+          }
+        )
+      }
+
+      # Reset hook index before each render
+      reset_hooks <- function() {
+        .sparkle_hook_state$hook_index <- 0L
       }
 
       # Define tags
@@ -216,15 +248,81 @@ class SparkleBridge {
   }
 
   /**
+   * Recursively convert webR objects to plain JavaScript objects
+   */
+  async convertRObject(rObj) {
+    // Handle primitives
+    if (!rObj || typeof rObj !== 'object') {
+      return rObj;
+    }
+
+    // Check if it's a webR proxy (has .toJs method)
+    let jsObj;
+    if (typeof rObj.toJs === 'function') {
+      jsObj = await rObj.toJs();
+    } else {
+      // Already a plain JavaScript object
+      jsObj = rObj;
+    }
+
+    // Check if it's an R object with type property
+    if (jsObj && typeof jsObj === 'object') {
+      // Handle R atomic types (character, numeric, integer, logical)
+      if (jsObj.type && jsObj.values && Array.isArray(jsObj.values)) {
+        if (jsObj.type === 'list') {
+          // It's an R list - convert to plain object or array
+          const result = {};
+          if (jsObj.names && Array.isArray(jsObj.names)) {
+            // Named list
+            for (let i = 0; i < jsObj.names.length; i++) {
+              const name = jsObj.names[i];
+              const value = jsObj.values[i];
+              // Recursively convert nested values
+              result[name] = await this.convertRObject(value);
+            }
+            return result;
+          } else {
+            // Unnamed list - convert to array
+            const arr = [];
+            for (const value of jsObj.values) {
+              arr.push(await this.convertRObject(value));
+            }
+            return arr;
+          }
+        } else if (['character', 'string', 'numeric', 'integer', 'double', 'logical'].includes(jsObj.type)) {
+          // It's an R vector - return the single value if length 1, otherwise return array
+          if (jsObj.values.length === 1) {
+            return jsObj.values[0];
+          } else {
+            return jsObj.values;
+          }
+        }
+      } else if (Array.isArray(jsObj)) {
+        // It's already an array - recursively convert items
+        const arr = [];
+        for (const item of jsObj) {
+          arr.push(await this.convertRObject(item));
+        }
+        return arr;
+      }
+    }
+
+    return jsObj;
+  }
+
+  /**
    * Call the R component function and get its output
    */
   async callRComponent() {
     try {
+      // Reset hook index before rendering
+      await this.webR.evalR('reset_hooks()');
+
       // Execute the component function using the stored component name
       const result = await this.webR.evalR(`${this.componentName}()`);
 
-      // Convert the result to JavaScript
-      const jsResult = await result.toJs();
+      // Convert the result to plain JavaScript
+      const jsResult = await this.convertRObject(result);
 
       return jsResult;
     } catch (error) {

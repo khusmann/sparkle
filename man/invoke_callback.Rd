@@ -9,12 +9,13 @@ invoke_callback(callback_id, args = list())
 \arguments{
 \item{callback_id}{The ID of the callback to invoke}
 
-\item{args}{Arguments to pass to the callback}
+\item{args}{Arguments to pass to the callback (default: empty list)}
 }
 \value{
 The result of the callback function
 }
 \description{
 Called by the JavaScript bridge to execute a wrapped callback.
+This function is called from JavaScript via webR when an event fires.
 }
 \keyword{internal}

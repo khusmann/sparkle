@@ -2,7 +2,10 @@
 
 S3method(print,sparkle_callback)
 S3method(print,sparkle_element)
+export(invoke_callback)
 export(sparkle_app)
+export(sparkle_get_state)
+export(sparkle_set_state)
 export(tags)
 export(use_state)
 export(wrap_fn)

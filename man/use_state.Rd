@@ -11,8 +11,8 @@ use_state(initial_value)
 }
 \value{
 A list with two elements:
+  \item{index}{The index of this state variable (for use in callbacks)}
   \item{value}{The current state value}
-  \item{set}{A function to update the state}
 }
 \description{
 Creates a state variable similar to React's useState hook.
@@ -25,7 +25,13 @@ Counter <- function() {
   count <- use_state(0)
   tags$div(
     tags$h1(paste("Count:", count$value)),
-    tags$button("Increment", on_click = wrap_fn(\() count$set(count$value + 1)))
+    tags$button(
+      "Increment",
+      on_click = wrap_fn(function() {
+        current <- sparkle_get_state(count$index)
+        sparkle_set_state(count$index, current + 1)
+      })
+    )
   )
 }
 }

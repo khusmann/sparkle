@@ -24,28 +24,9 @@ Counter <- function() {
     tags$div(
       class_name = "controls",
 
-      tags$button(
-        "Decrement",
-        on_click = wrap_fn(function() {
-          current <- sparkle_get_state(count$index)
-          sparkle_set_state(count$index, current - 1)
-        })
-      ),
-
-      tags$button(
-        "Reset",
-        on_click = wrap_fn(function() {
-          sparkle_set_state(count$index, 0)
-        })
-      ),
-
-      tags$button(
-        "Increment",
-        on_click = wrap_fn(function() {
-          current <- sparkle_get_state(count$index)
-          sparkle_set_state(count$index, current + 1)
-        })
-      )
+      tags$button("Decrement", on_click = \() count$set(count$value - 1)),
+      tags$button("Reset", on_click = \() count$set(0)),
+      tags$button("Increment", on_click = \() count$set(count$value + 1))
     ),
 
     # Info text

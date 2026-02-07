@@ -2,7 +2,7 @@
 % Please edit documentation in R/hooks.R
 \name{sparkle_set_state}
 \alias{sparkle_set_state}
-\title{Set the value of a state variable}
+\title{Set the value of a state variable (internal)}
 \usage{
 sparkle_set_state(index, value)
 }
@@ -18,3 +18,4 @@ A list signaling the state update to JavaScript
 Update a state variable and signal to JavaScript that state has changed.
 This triggers a re-render of the component.
 }
+\keyword{internal}

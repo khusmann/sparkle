@@ -34,16 +34,27 @@
 #'   tags$p("Paragraph text")
 #' )
 #'
-#' # Element with event handler
+#' # Element with event handler (auto-wrapped)
 #' tags$button(
 #'   "Click me",
-#'   on_click = wrap_fn(\() print("Clicked!"))
+#'   on_click = \() print("Clicked!")
 #' )
 #' }
 #'
 #' @name tags
 #' @export
 tags <- list()
+
+#' Check if a prop name is an event handler
+#'
+#' Event handler props start with "on_" (e.g., on_click, on_change)
+#'
+#' @param prop_name Character string with the prop name
+#' @return TRUE if this is an event handler prop, FALSE otherwise
+#' @keywords internal
+is_event_handler_prop <- function(prop_name) {
+  grepl("^on_", prop_name)
+}
 
 #' Create a virtual DOM element
 #'
@@ -66,7 +77,17 @@ create_element <- function(tag, ...) {
   for (i in seq_along(args)) {
     if (prop_names[i] != "") {
       # Named argument = prop
-      props[[prop_names[i]]] <- args[[i]]
+      prop_value <- args[[i]]
+
+      # AUTO-WRAP: If event handler prop and function, wrap it
+      if (is_event_handler_prop(prop_names[i]) && is.function(prop_value)) {
+        # Check if already wrapped to avoid double-wrapping
+        if (!inherits(prop_value, "sparkle_callback")) {
+          prop_value <- wrap_fn(prop_value)
+        }
+      }
+
+      props[[prop_names[i]]] <- prop_value
     } else {
       # Unnamed argument = child
       children <- append(children, list(args[[i]]))

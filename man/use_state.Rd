@@ -10,9 +10,10 @@ use_state(initial_value)
 \item{initial_value}{The initial value for the state variable}
 }
 \value{
-A list with two elements:
-  \item{index}{The index of this state variable (for use in callbacks)}
-  \item{value}{The current state value}
+A sparkle_state object with:
+  \item{value}{The current state value (read-only)}
+  \item{set(new_value)}{Method to update state to a new value}
+  \item{update(fn)}{Method to update state using a function: fn(old_value) -> new_value}
 }
 \description{
 Creates a state variable similar to React's useState hook.
@@ -25,13 +26,17 @@ Counter <- function() {
   count <- use_state(0)
   tags$div(
     tags$h1(paste("Count:", count$value)),
-    tags$button(
-      "Increment",
-      on_click = wrap_fn(function() {
-        current <- sparkle_get_state(count$index)
-        sparkle_set_state(count$index, current + 1)
-      })
-    )
+    tags$button("Increment", on_click = \() count$set(count$value + 1)),
+    tags$button("Reset", on_click = \() count$set(0))
+  )
+}
+
+# Functional updates
+TodoApp <- function() {
+  todos <- use_state(list())
+  tags$button(
+    "Add Item",
+    on_click = \() todos$update(\(t) c(t, list("New item")))
   )
 }
 }

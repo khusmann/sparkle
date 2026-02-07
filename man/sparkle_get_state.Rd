@@ -15,9 +15,10 @@ The current value of the state
 \description{
 These functions provide access to React's hooks system from R code.
 They manage state that bridges to React via the JavaScript runtime.
-Global state accessor functions
+Global state accessor functions (internal)
 }
 \details{
 Get the current value of a state variable by its index.
-This is used internally by callbacks to access state.
+This is used internally by state object methods and callbacks.
 }
+\keyword{internal}

@@ -47,10 +47,10 @@ tags$div(
   tags$p("Paragraph text")
 )
 
-# Element with event handler
+# Element with event handler (auto-wrapped)
 tags$button(
   "Click me",
-  on_click = wrap_fn(\() print("Clicked!"))
+  on_click = \() print("Clicked!")
 )
 }
 

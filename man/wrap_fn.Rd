@@ -16,20 +16,13 @@ A wrapped function object that can be passed to event props
 Wraps R functions for use as event handlers in Sparkle components.
 The wrapped function will be serialized and executed asynchronously
 when the event fires.
-Wrap a function for use as an event callback
+Wrap a function for use as an event callback (internal)
 }
 \details{
 This function wraps an R function so it can be used as an event handler
 (e.g., on_click, on_change). The function will be serialized and executed
 asynchronously in webR when the event fires.
+
+This is now an internal function - event handlers are automatically wrapped.
 }
-\examples{
-\dontrun{
-tags$button(
-  "Click me",
-  on_click = wrap_fn(\() {
-    print("Button clicked!")
-  })
-)
-}
-}
+\keyword{internal}

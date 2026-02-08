@@ -71,6 +71,25 @@ export function transformPropName(propName) {
 }
 
 /**
+ * Transform style object properties from snake_case to camelCase
+ */
+function transformStyleObject(styleObj) {
+  if (!styleObj || typeof styleObj !== 'object') {
+    return styleObj;
+  }
+
+  const transformed = {};
+
+  for (const [key, value] of Object.entries(styleObj)) {
+    // Convert snake_case to camelCase for CSS properties
+    const transformedKey = snakeToCamel(key);
+    transformed[transformedKey] = value;
+  }
+
+  return transformed;
+}
+
+/**
  * Transform all props in an object
  */
 export function transformProps(props) {
@@ -82,7 +101,13 @@ export function transformProps(props) {
 
   for (const [key, value] of Object.entries(props)) {
     const transformedKey = transformPropName(key);
-    transformed[transformedKey] = value;
+
+    // Special handling for style prop - transform nested properties
+    if (key === 'style' && typeof value === 'object' && value !== null) {
+      transformed[transformedKey] = transformStyleObject(value);
+    } else {
+      transformed[transformedKey] = value;
+    }
   }
 
   return transformed;

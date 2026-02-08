@@ -12,15 +12,15 @@ Live interactive demos are available at
 
 See the `examples/` directory for source code:
 
-- [`counter.R`](https://khusmann.github.io/sparkle/counter) - Basic counter with
+- [`counter.R`](https://khusmann.github.io/sparkle/counter) ([source](https://github.com/khusmann/sparkle/blob/main/examples/counter.R)) - Basic counter with
   increment/decrement
-- [`todo.R`](https://khusmann.github.io/sparkle/todo) - Task manager with
+- [`todo.R`](https://khusmann.github.io/sparkle/todo) ([source](https://github.com/khusmann/sparkle/blob/main/examples/todo.R)) - Task manager with
   complex state management
-- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo) -
+- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo) ([source](https://github.com/khusmann/sparkle/blob/main/examples/design-system-demo.R)) -
   Pre-built UI components showcase
-- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo) - Custom
+- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo) ([source](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R)) - Custom
   styled components with CSS-in-R
-- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile) -
+- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile) ([source](https://github.com/khusmann/sparkle/tree/main/examples/counter-multifile)) -
   Multi-file app organization best practices
 
 Each example runs entirely in your browser via webR with no server required.
@@ -267,7 +267,7 @@ PrimaryButton("Click me", on_click = handler)
 
 Style properties use snake_case and can be computed dynamically from state.
 Always call `create_style_tag()` at the end of your component to inject CSS. See
-[`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo).
+[`styled-demo.R`](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R).
 
 ### Design System
 
@@ -286,7 +286,7 @@ ui$Container(max_width = "800px", ...)
 Components support variants (`primary`, `secondary`, `success`, `danger`,
 `warning`, `info`) and spacing tokens (`xs`, `sm`, `md`, `lg`, `xl`). Requires
 `create_style_tag()` like styled components. See
-[`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo).
+[`design-system-demo.R`](https://github.com/khusmann/sparkle/blob/main/examples/design-system-demo.R).
 
 ### App Launching and Building
 

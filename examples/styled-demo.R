@@ -83,6 +83,23 @@ App <- function() {
           color = "#6b7280",
           margin_top = "20px"
         )
+      ),
+      # Source code link
+      tags$div(
+        style = list(
+          margin_top = "40px",
+          padding_top = "20px",
+          border_top = "1px solid #e5e7eb",
+          text_align = "center",
+          font_size = "14px",
+          color = "#6b7280"
+        ),
+        tags$a(
+          "View source on GitHub",
+          href = "https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R",
+          target = "_blank",
+          style = list(color = "#3b82f6", text_decoration = "none")
+        )
       )
     )
 

@@ -20,6 +20,8 @@ class SparkleBridge {
     this.hookManager = null;
     this.root = null;
     this.componentFunction = null;
+    this.currentRenderPromise = null;  // Track current render to prevent concurrent renders
+    this.pendingRenderSequence = null;  // Track if a render is pending
   }
 
   /**
@@ -244,7 +246,6 @@ class SparkleBridge {
       const [rOutput, setROutput] = React.useState(null);
       const [isUpdating, setIsUpdating] = React.useState(false);
       const isFirstRender = React.useRef(true);
-      const updateTimeoutRef = React.useRef(null);
 
       // Store rerender callback for state updates
       this.rerenderCallback = () => {
@@ -255,9 +256,12 @@ class SparkleBridge {
         // Reset hook index before rendering
         this.hookManager.reset();
 
+        // Capture timeout ID for this specific render so we can clean it up
+        let thisRenderTimeout = null;
+
         // Set updating state after 500ms delay (but not on first render where we want true loading)
         if (!isFirstRender.current) {
-          updateTimeoutRef.current = setTimeout(() => {
+          thisRenderTimeout = setTimeout(() => {
             setIsUpdating(true);
           }, 500);
         }
@@ -265,20 +269,18 @@ class SparkleBridge {
         // Call the R component function
         this.callRComponent()
           .then(output => {
-            // Clear the timeout if render completed before 500ms
-            if (updateTimeoutRef.current) {
-              clearTimeout(updateTimeoutRef.current);
-              updateTimeoutRef.current = null;
+            // Clear this render's timeout if it hasn't fired yet
+            if (thisRenderTimeout) {
+              clearTimeout(thisRenderTimeout);
             }
             setROutput(output);
             setIsUpdating(false);
             isFirstRender.current = false;
           })
           .catch(error => {
-            // Clear the timeout on error
-            if (updateTimeoutRef.current) {
-              clearTimeout(updateTimeoutRef.current);
-              updateTimeoutRef.current = null;
+            // Clear this render's timeout on error
+            if (thisRenderTimeout) {
+              clearTimeout(thisRenderTimeout);
             }
             console.error('Error calling R component:', error);
             setIsUpdating(false);
@@ -379,31 +381,59 @@ class SparkleBridge {
    * Call the R component function and get its output
    */
   async callRComponent() {
+    // If a render is already in progress, wait for it and then render with latest sequence
+    if (this.currentRenderPromise) {
+      this.pendingRenderSequence = this.currentRenderSequence;
+      await this.currentRenderPromise;
+      // After waiting, if there's still a pending render, do it
+      if (this.pendingRenderSequence !== null) {
+        const seqToRender = this.pendingRenderSequence;
+        this.pendingRenderSequence = null;
+        this.currentRenderSequence = seqToRender;
+        return this.callRComponent();
+      }
+      return null; // Another call already handled it
+    }
+
     try {
-      // Reset hook index before rendering
-      await this.webR.evalR('reset_hooks()');
+      // Capture the sequence number at the START of this render
+      const renderSequence = this.currentRenderSequence;
 
-      // Set the current render sequence in R if present
-      if (this.currentRenderSequence !== null && this.currentRenderSequence !== undefined) {
-        await this.webR.evalR(`
-          .sparkle_hook_state$current_render_sequence <- ${this.currentRenderSequence}
-        `);
-      }
+      // Mark render as in progress
+      this.currentRenderPromise = (async () => {
+        // Reset hook index before rendering
+        await this.webR.evalR('reset_hooks()');
 
-      // Execute the component function and automatically wrap with styles
-      const result = await this.webR.evalR(`with_styles(${this.componentName}())`);
+        // Set the current render sequence in R if present
+        if (renderSequence !== null && renderSequence !== undefined) {
+          await this.webR.evalR(`
+            .sparkle_hook_state$current_render_sequence <- ${renderSequence}
+          `);
+        }
 
-      // Convert the result to plain JavaScript
-      const jsResult = await this.convertRObject(result);
+        // Execute the component function and automatically wrap with styles
+        const result = await this.webR.evalR(`with_styles(${this.componentName}())`);
 
-      // Attach the render sequence to the result
-      if (this.currentRenderSequence !== null && this.currentRenderSequence !== undefined) {
-        jsResult.__sparkle_render_sequence = this.currentRenderSequence;
-      }
+        // Convert the result to plain JavaScript
+        const jsResult = await this.convertRObject(result);
 
-      return jsResult;
+        // Attach the render sequence to the result (use captured value, not current)
+        if (renderSequence !== null && renderSequence !== undefined) {
+          jsResult.__sparkle_render_sequence = renderSequence;
+        }
+
+        return jsResult;
+      })();
+
+      const result = await this.currentRenderPromise;
+
+      // Clear current render
+      this.currentRenderPromise = null;
+
+      return result;
     } catch (error) {
       console.error('Error calling R component:', error);
+      this.currentRenderPromise = null;
       throw error;
     }
   }

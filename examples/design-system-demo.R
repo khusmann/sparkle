@@ -67,6 +67,7 @@ App <- function() {
           )),
           ui$Input(
             type = "text",
+            id = "name-input",
             placeholder = "Enter your name",
             value = name,
             on_change = \(e) set_name(e$target$value)
@@ -83,6 +84,7 @@ App <- function() {
           )),
           ui$Input(
             type = "email",
+            id = "email-input",
             placeholder = "your.email@example.com",
             value = email,
             on_change = \(e) set_email(e$target$value)

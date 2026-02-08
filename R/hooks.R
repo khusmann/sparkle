@@ -26,12 +26,23 @@ sparkle_get_state <- function(index) {
 #' @keywords internal
 sparkle_set_state <- function(index, value) {
   .sparkle_hook_state$state_values[[index + 1]] <- value
+
+  # Get current event sequence if present
+  sequence <- .sparkle_hook_state$current_event_sequence
+
   # Signal to JS that state changed - return special marker
-  list(
+  result <- list(
     sparkle_state_update = TRUE,
     index = index,
     value = value
   )
+
+  # Include sequence if present
+  if (!is.null(sequence)) {
+    result$`__sparkle_sequence` <- sequence
+  }
+
+  result
 }
 
 #' Use State Hook
@@ -107,4 +118,5 @@ use_state <- function(initial_value) {
 #' @keywords internal
 reset_hooks <- function() {
   .sparkle_hook_state$hook_index <- 0L
+  .sparkle_hook_state$current_event_sequence <- NULL
 }

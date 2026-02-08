@@ -119,6 +119,8 @@ class SparkleBridge {
       .sparkle_hook_state <- new.env(parent = emptyenv())
       .sparkle_hook_state$hook_index <- 0L
       .sparkle_hook_state$state_values <- list()
+      .sparkle_hook_state$current_event_sequence <- NULL
+      .sparkle_hook_state$current_render_sequence <- NULL
     `);
 
     // Create a virtual sparkle package from bundled sources
@@ -225,8 +227,10 @@ class SparkleBridge {
 
   /**
    * Trigger a re-render of the component
+   * @param {number|null} sequence - Optional sequence number from the event that triggered this render
    */
-  triggerRerender() {
+  triggerRerender(sequence) {
+    this.currentRenderSequence = sequence !== undefined ? sequence : null;
     if (this.rerenderCallback) {
       this.rerenderCallback();
     }
@@ -274,8 +278,9 @@ class SparkleBridge {
         return React.createElement('div', null, 'Loading component...');
       }
 
-      // Convert R output to React elements
-      const content = this.componentFactory.toReactElement(rOutput);
+      // Convert R output to React elements, passing the render sequence
+      const renderSequence = rOutput?.__sparkle_render_sequence;
+      const content = this.componentFactory.toReactElement(rOutput, renderSequence);
 
       // Wrap in a div with opacity transition during updates
       return React.createElement('div', {
@@ -366,11 +371,23 @@ class SparkleBridge {
       // Reset hook index before rendering
       await this.webR.evalR('reset_hooks()');
 
+      // Set the current render sequence in R if present
+      if (this.currentRenderSequence !== null && this.currentRenderSequence !== undefined) {
+        await this.webR.evalR(`
+          .sparkle_hook_state$current_render_sequence <- ${this.currentRenderSequence}
+        `);
+      }
+
       // Execute the component function using the stored component name
       const result = await this.webR.evalR(`${this.componentName}()`);
 
       // Convert the result to plain JavaScript
       const jsResult = await this.convertRObject(result);
+
+      // Attach the render sequence to the result
+      if (this.currentRenderSequence !== null && this.currentRenderSequence !== undefined) {
+        jsResult.__sparkle_render_sequence = this.currentRenderSequence;
+      }
 
       return jsResult;
     } catch (error) {

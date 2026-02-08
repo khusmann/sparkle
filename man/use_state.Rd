@@ -11,7 +11,7 @@ use_state(initial_value)
 }
 \value{
 A 2-element list containing:
-  \item{1}{A getter function that returns the current state value}
+  \item{1}{The current state value}
   \item{2}{A setter function(new_value_or_fn) that updates state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
 }
 \description{
@@ -30,8 +30,8 @@ library(zeallot)
 Counter <- function() {
   c(count, setCount) \%<-\% use_state(0)
   tags$div(
-    tags$h1(paste("Count:", count())),
-    tags$button("Increment", on_click = \() setCount(count() + 1)),
+    tags$h1(paste("Count:", count)),
+    tags$button("Increment", on_click = \() setCount(\(c) c + 1)),
     tags$button("Reset", on_click = \() setCount(0))
   )
 }

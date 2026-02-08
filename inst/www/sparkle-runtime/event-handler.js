@@ -48,6 +48,11 @@ class EventHandler {
       eventData.button = event.button;
     }
 
+    // Extract sequence number if present (from OptimisticInput)
+    if (event.__sparkle_sequence !== undefined) {
+      eventData.__sparkle_sequence = event.__sparkle_sequence;
+    }
+
     return eventData;
   }
 
@@ -121,6 +126,11 @@ class EventHandler {
           parts.push(`button = ${eventData.button}`);
         }
 
+        // Add sequence number if present
+        if (eventData.__sparkle_sequence !== undefined) {
+          parts.push(`\`__sparkle_sequence\` = ${eventData.__sparkle_sequence}`);
+        }
+
         rCode += parts.join(', ') + ')';
 
         // Execute the R callback with the constructed event data
@@ -135,8 +145,9 @@ class EventHandler {
         // Check if this is a state update signal
         if (jsResult && jsResult.sparkle_state_update === true) {
           console.log('State update detected:', jsResult);
-          // Trigger a re-render
-          this.bridge.triggerRerender();
+          // Trigger a re-render with sequence number if present
+          const sequence = jsResult.__sparkle_sequence;
+          this.bridge.triggerRerender(sequence);
         }
 
         return jsResult;

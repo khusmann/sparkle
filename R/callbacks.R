@@ -58,6 +58,13 @@ invoke_callback <- function(callback_id, args = list()) {
   }
   fn <- get(callback_id, envir = .sparkle_callbacks)
 
+  # Extract and store sequence number if present in event data
+  if (!is.null(args$e$`__sparkle_sequence`)) {
+    .sparkle_hook_state$current_event_sequence <- args$e$`__sparkle_sequence`
+  } else {
+    .sparkle_hook_state$current_event_sequence <- NULL
+  }
+
   # Check if function accepts arguments
   fn_formals <- formals(fn)
 

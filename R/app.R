@@ -1,124 +1,100 @@
-#' Detect the source file that called sparkle_app
+#' Serve a static file with appropriate headers
 #'
-#' @return The path to the source file, or NULL if not found
+#' @param file_path Path to file to serve
+#' @param extra_headers Additional headers to include
+#' @return httpuv response list
 #' @keywords internal
-detect_source_file <- function() {
-  # Walk up the call stack to find a frame with source info
-  for (i in 1:sys.nframe()) {
-    srcref <- getSrcref(sys.call(i))
-    if (!is.null(srcref)) {
-      srcfile <- attr(srcref, "srcfile")
-      if (!is.null(srcfile) && !is.null(srcfile$filename)) {
-        return(srcfile$filename)
-      }
-    }
-  }
-  NULL
-}
+serve_static_file <- function(file_path, extra_headers = list()) {
+  # Determine content type
+  ext <- tools::file_ext(file_path)
+  content_type <- switch(ext,
+    "html" = "text/html",
+    "js" = "application/javascript",
+    "css" = "text/css",
+    "json" = "application/json",
+    "tgz" = "application/gzip",
+    "gz" = "application/gzip",
+    "data" = "application/octet-stream",
+    "metadata" = "application/json",
+    "rds" = "application/octet-stream",
+    "application/octet-stream"
+  )
 
-#' Detect package dependencies from source file
-#'
-#' Parses source file to find library() and require() calls
-#'
-#' @param file_path Path to R source file
-#' @return Character vector of package names
-#' @keywords internal
-detect_dependencies <- function(file_path = NULL) {
-  # If no file provided, try to detect it
-  if (is.null(file_path)) {
-    file_path <- detect_source_file()
-  }
+  # Read file
+  content <- readBin(file_path, "raw", file.info(file_path)$size)
 
-  # If we still don't have a file, return empty
-  if (is.null(file_path) || !file.exists(file_path)) {
-    return(character(0))
-  }
+  # Combine headers
+  headers <- c(
+    list("Content-Type" = content_type),
+    extra_headers
+  )
 
-  # Read the source file
-  source_code <- paste(readLines(file_path, warn = FALSE), collapse = "\n")
-
-  # Parse the code to find library() and require() calls
-  # Match library(pkg), library("pkg"), require(pkg), require("pkg")
-  library_pattern <- "(?:library|require)\\s*\\(\\s*['\"]?([a-zA-Z0-9.]+)['\"]?\\s*\\)"
-
-  matches <- gregexpr(library_pattern, source_code, perl = TRUE)
-
-  if (matches[[1]][1] == -1) {
-    return(character(0))
-  }
-
-  # Extract package names from matches
-  match_data <- regmatches(source_code, matches)[[1]]
-  pkg_names <- sub(".*\\(\\s*['\"]?([a-zA-Z0-9.]+)['\"]?\\s*\\).*", "\\1", match_data)
-
-  # Remove 'sparkle' since it's already loaded
-  pkg_names <- setdiff(pkg_names, "sparkle")
-
-  unique(pkg_names)
+  list(
+    status = 200L,
+    headers = headers,
+    body = content
+  )
 }
 
 #' Launch a Sparkle Application
 #'
 #' Start a local development server and launch a Sparkle app in the browser.
-#' Similar to Shiny's \code{runApp()}.
+#' Supports both folder-based apps (multiple .R files) and single-file apps.
 #'
-#' @param component An R function that returns a Sparkle component (created with tags$*)
+#' @param path Path to app folder or single .R file. Default: "." (current directory)
 #' @param port The port number for the development server (default: 3000)
 #' @param host The host address (default: "127.0.0.1")
 #' @param launch_browser Whether to automatically open the browser (default: TRUE)
 #' @export
 #' @examples
 #' \dontrun{
-#' Counter <- function() {
-#'   c(count, setCount) %<-% use_state(0)
-#'   tags$div(
-#'     tags$h1(paste("Count:", count())),
-#'     tags$button("Increment", on_click = \() setCount(count() + 1))
-#'   )
-#' }
+#' # Folder-based app
+#' sparkle_app("my-app/")
 #'
-#' sparkle_app(Counter)
+#' # Single-file app
+#' sparkle_app("counter.R")
+#'
+#' # Current directory (must contain .R files with App function)
+#' sparkle_app()
 #' }
-sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_browser = TRUE) {
-  if (!is.function(component)) {
-    stop("component must be a function that returns a Sparkle element")
-  }
+sparkle_app <- function(path = ".", port = 3000, host = "127.0.0.1", launch_browser = TRUE) {
+  # Default to current directory if no path provided
+  # This allows: sparkle_app() when you're already in the app directory
 
-  # Get the component name from the call
-  component_name <- deparse(substitute(component))
+  # Normalize path
+  path <- normalizePath(path, mustWork = TRUE)
 
-  # Detect package dependencies from the source file
-  dependencies <- detect_dependencies()
+  # Determine if it's a file or folder
+  r_files <- character(0)
+  if (file.info(path)$isdir) {
+    # Folder mode: source all .R files
+    r_files <- list.files(path, pattern = "\\.R$", full.names = TRUE)
+    r_files <- sort(r_files)  # Alphabetical order
 
-  if (length(dependencies) > 0) {
-    message("Detected package dependencies: ", paste(dependencies, collapse = ", "))
-  }
+    if (length(r_files) == 0) {
+      stop("No .R files found in directory: ", path)
+    }
 
-  # Build component code with library() calls
-  library_calls <- if (length(dependencies) > 0) {
-    paste0("library(", dependencies, ")", collapse = "\n")
+    message("Found ", length(r_files), " R file(s): ", paste(basename(r_files), collapse = ", "))
   } else {
-    ""
+    # Single-file mode
+    r_files <- c(path)
+    message("Loading single-file app: ", basename(path))
   }
 
-  # Serialize the component function with assignment
-  component_fn <- deparse(component)
-  component_code_str <- paste0(
-    library_calls,
-    if (library_calls != "") "\n\n" else "",
-    component_name, " <- ",
-    paste(component_fn, collapse = "\n")
-  )
+  # Create temporary bundle directory
+  bundle_dir <- tempfile("sparkle-bundle-")
+  dir.create(bundle_dir, recursive = TRUE)
+
+  # Create app bundle (detects dependencies, downloads packages, etc.)
+  message("Creating app bundle...")
+  bundle_info <- create_app_bundle(r_files, bundle_dir)
 
   # Get the path to the www directory
-  # When installed: system.file finds files in inst/ promoted to package root
-  # When not installed (dev mode): we need to find inst/www in the source tree
-
   www_dir <- system.file("www", package = "sparkle")
 
   if (www_dir == "" || !dir.exists(www_dir)) {
     # Development mode: look for inst/www relative to package root
-    # Try to find the package root by looking for DESCRIPTION file
     pkg_root <- getwd()
 
     # Walk up directory tree to find DESCRIPTION file
@@ -146,22 +122,37 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
 
   message("Starting Sparkle app on http://", host, ":", port)
 
+  # CORS headers (required for webR package loading)
+  cors_headers <- list(
+    "Access-Control-Allow-Origin" = "*",
+    "Access-Control-Allow-Methods" = "GET, OPTIONS",
+    "Access-Control-Allow-Headers" = "Content-Type"
+  )
+
   # Create a httpuv server
   app <- list(
     call = function(req) {
       path <- req$PATH_INFO
 
+      # Handle OPTIONS preflight requests
+      if (req$REQUEST_METHOD == "OPTIONS") {
+        return(list(
+          status = 200L,
+          headers = cors_headers,
+          body = ""
+        ))
+      }
+
       # Handle root path
       if (path == "/" || path == "/index.html") {
-        # Read and modify index.html to inject component code
+        # Read and modify index.html to inject bundle info
         html_path <- file.path(www_dir, "index.html")
         html_content <- paste(readLines(html_path), collapse = "\n")
 
         # Inject the component code, name, and dependencies
-        component_json <- jsonlite::toJSON(component_code_str, auto_unbox = TRUE)
-        component_name_json <- jsonlite::toJSON(component_name, auto_unbox = TRUE)
-        # Don't unbox dependencies - always keep as array
-        dependencies_json <- jsonlite::toJSON(dependencies)
+        component_json <- jsonlite::toJSON(bundle_info$app_code, auto_unbox = TRUE)
+        component_name_json <- jsonlite::toJSON(bundle_info$component_name, auto_unbox = TRUE)
+        dependencies_json <- jsonlite::toJSON(bundle_info$dependencies)
 
         html_content <- sub(
           "window.SPARKLE_COMPONENT_CODE = '';",
@@ -174,39 +165,47 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
           fixed = TRUE
         )
 
+        # Inject flag to use local packages
+        html_content <- sub(
+          "</head>",
+          "<script>window.SPARKLE_USE_LOCAL_PACKAGES = true;</script>\n</head>",
+          html_content,
+          fixed = TRUE
+        )
+
         return(list(
           status = 200L,
-          headers = list("Content-Type" = "text/html; charset=UTF-8"),
+          headers = c(list("Content-Type" = "text/html; charset=UTF-8"), cors_headers),
           body = html_content
         ))
       }
 
-      # Handle static files
-      file_path <- file.path(www_dir, substring(path, 2))  # Remove leading /
+      # Handle /repo/ route for bundled packages
+      if (startsWith(path, "/repo/")) {
+        file_path <- file.path(bundle_info$bundle_dir, substring(path, 2))
+
+        if (file.exists(file_path) && !file.info(file_path)$isdir) {
+          return(serve_static_file(file_path, cors_headers))
+        } else {
+          return(list(
+            status = 404L,
+            headers = cors_headers,
+            body = "Package file not found"
+          ))
+        }
+      }
+
+      # Handle static files from www/
+      file_path <- file.path(www_dir, substring(path, 2))
 
       if (file.exists(file_path) && !file.info(file_path)$isdir) {
-        # Determine content type
-        content_type <- if (grepl("\\.js$", file_path)) {
-          "application/javascript"
-        } else if (grepl("\\.css$", file_path)) {
-          "text/css"
-        } else if (grepl("\\.html$", file_path)) {
-          "text/html"
-        } else {
-          "application/octet-stream"
-        }
-
-        return(list(
-          status = 200L,
-          headers = list("Content-Type" = content_type),
-          body = readBin(file_path, "raw", file.info(file_path)$size)
-        ))
+        return(serve_static_file(file_path, cors_headers))
       }
 
       # 404 for everything else
       return(list(
         status = 404L,
-        headers = list("Content-Type" = "text/plain"),
+        headers = c(list("Content-Type" = "text/plain"), cors_headers),
         body = "Not Found"
       ))
     }
@@ -223,8 +222,11 @@ sparkle_app <- function(component, port = 3000, host = "127.0.0.1", launch_brows
 
   message("Sparkle is running. Press Ctrl+C to stop.")
 
-  # Keep R session alive
-  on.exit(httpuv::stopServer(server))
+  # Clean up bundle directory on exit
+  on.exit({
+    httpuv::stopServer(server)
+    unlink(bundle_dir, recursive = TRUE)
+  })
 
   # Run the event loop
   tryCatch({

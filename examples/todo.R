@@ -1,12 +1,14 @@
 # Sparkle TODO List Example
 # Demonstrates state management with lists and multiple state variables
+#
+# Run with: sparkle_app("examples/todo.R")
 
 library(sparkle)
 library(zeallot)
 
-TodoApp <- function() {
-  c(todos, setTodos) %<-% use_state(list())
-  c(inputText, setInputText) %<-% use_state("")
+App <- function() {
+  c(todos, set_todos) %<-% use_state(list())
+  c(input_text, set_input_text) %<-% use_state("")
 
   # Helper to create a todo item
   create_todo <- function(text) {
@@ -27,18 +29,18 @@ TodoApp <- function() {
       class_name = "todo-input",
       tags$input(
         type = "text",
-        value = inputText(),
+        value = input_text(),
         placeholder = "Enter a new task...",
         on_change = \(e) {
-          setInputText(e$target$value)
+          set_input_text(e$target$value)
         }
       ),
       tags$button(
         "Add Task",
         on_click = \() {
-          if (nchar(inputText()) > 0) {
-            setTodos(\(t) c(t, list(create_todo(inputText()))))
-            setInputText("")
+          if (nchar(input_text()) > 0) {
+            set_todos(\(t) c(t, list(create_todo(input_text()))))
+            set_input_text("")
           }
         }
       )
@@ -58,7 +60,7 @@ TodoApp <- function() {
               type = "checkbox",
               checked = todo$completed,
               on_change = \() {
-                setTodos(\(t) {
+                set_todos(\(t) {
                   t[[i]]$completed <- !t[[i]]$completed
                   t
                 })
@@ -70,7 +72,7 @@ TodoApp <- function() {
             ),
             tags$button(
               "Delete",
-              on_click = \() setTodos(\(t) t[-i])
+              on_click = \() set_todos(\(t) t[-i])
             )
           )
         })
@@ -86,15 +88,12 @@ TodoApp <- function() {
       )),
       tags$button(
         "Clear Completed",
-        on_click = \() setTodos(\(t) Filter(\(todo) !todo$completed, t))
+        on_click = \() set_todos(\(t) Filter(\(todo) !todo$completed, t))
       ),
       tags$button(
         "Clear All",
-        on_click = \() setTodos(list())
+        on_click = \() set_todos(list())
       )
     )
   )
 }
-
-# Launch the app
-sparkle_app(TodoApp, port = 3000)

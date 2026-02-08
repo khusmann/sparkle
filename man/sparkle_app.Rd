@@ -4,10 +4,10 @@
 \alias{sparkle_app}
 \title{Launch a Sparkle Application}
 \usage{
-sparkle_app(component, port = 3000, host = "127.0.0.1", launch_browser = TRUE)
+sparkle_app(path = ".", port = 3000, host = "127.0.0.1", launch_browser = TRUE)
 }
 \arguments{
-\item{component}{An R function that returns a Sparkle component (created with tags$*)}
+\item{path}{Path to app folder or single .R file. Default: "." (current directory)}
 
 \item{port}{The port number for the development server (default: 3000)}
 
@@ -17,18 +17,17 @@ sparkle_app(component, port = 3000, host = "127.0.0.1", launch_browser = TRUE)
 }
 \description{
 Start a local development server and launch a Sparkle app in the browser.
-Similar to Shiny's \code{runApp()}.
+Supports both folder-based apps (multiple .R files) and single-file apps.
 }
 \examples{
 \dontrun{
-Counter <- function() {
-  c(count, setCount) \%<-\% use_state(0)
-  tags$div(
-    tags$h1(paste("Count:", count())),
-    tags$button("Increment", on_click = \() setCount(count() + 1))
-  )
-}
+# Folder-based app
+sparkle_app("my-app/")
 
-sparkle_app(Counter)
+# Single-file app
+sparkle_app("counter.R")
+
+# Current directory (must contain .R files with App function)
+sparkle_app()
 }
 }

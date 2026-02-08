@@ -1,12 +1,14 @@
 # Sparkle Counter Example
 # A simple counter app demonstrating state management and event handlers
+#
+# Run with: sparkle_app("examples/counter.R")
 
 library(sparkle)
 library(zeallot)
 
-Counter <- function() {
+App <- function() {
   # Create a state variable with zeallot destructuring
-  c(count, setCount) %<-% use_state(0)
+  c(count, set_count) %<-% use_state(0)
 
   # Build the UI
   tags$div(
@@ -25,9 +27,9 @@ Counter <- function() {
     tags$div(
       class_name = "controls",
 
-      tags$button("Decrement", on_click = \() setCount(count() - 1)),
-      tags$button("Reset", on_click = \() setCount(0)),
-      tags$button("Increment", on_click = \() setCount(count() + 1))
+      tags$button("Decrement", on_click = \() set_count(count() - 1)),
+      tags$button("Reset", on_click = \() set_count(0)),
+      tags$button("Increment", on_click = \() set_count(count() + 1))
     ),
 
     # Info text
@@ -37,6 +39,3 @@ Counter <- function() {
     )
   )
 }
-
-# Launch the app
-sparkle_app(Counter, port = 3000)

@@ -38,8 +38,23 @@ class SparkleBridge {
       // Import webR as an ES module
       const { WebR } = await import('https://webr.r-wasm.org/latest/webr.mjs');
 
+      // Determine repository URL
+      let repoUrl;
+      if (window.SPARKLE_USE_LOCAL_PACKAGES) {
+        // Use local repository from dev server
+        const port = window.location.port || (window.location.protocol === 'https:' ? 443 : 80);
+        repoUrl = `${window.location.protocol}//${window.location.hostname}:${port}/repo/`;
+        console.log('Using local package repository:', repoUrl);
+      } else {
+        // Use webR CDN (default)
+        repoUrl = 'https://repo.r-wasm.org/';
+        console.log('Using webR CDN repository');
+      }
+
+      // Initialize WebR with custom repository
       this.webR = new WebR({
         baseUrl: 'https://webr.r-wasm.org/latest/',
+        repoUrl: repoUrl
       });
 
       await this.webR.init();
@@ -125,15 +140,19 @@ class SparkleBridge {
     // Update loading message
     const loadingEl = document.getElementById('loading');
     if (loadingEl) {
-      loadingEl.innerHTML = `Installing packages: ${packages.join(', ')}...`;
+      loadingEl.innerHTML = `Loading packages: ${packages.join(', ')}...`;
     }
 
     try {
-      await this.webR.installPackages(packages);
-      console.log('Packages installed successfully');
+      // Use standard installPackages - it will automatically use the repoUrl
+      // configured during initialization
+      if (packages.length > 0) {
+        await this.webR.installPackages(packages);
+        console.log('Packages loaded successfully');
+      }
     } catch (error) {
-      console.error('Error installing packages:', error);
-      throw new Error(`Failed to install packages: ${error.message}`);
+      console.error('Error loading packages:', error);
+      throw new Error(`Failed to load packages: ${error.message}`);
     }
   }
 

@@ -1,11 +1,13 @@
 # Sparkle Styled Components Demo
 # Demonstrates creating custom styled components with CSS-in-R
+#
+# Run with: sparkle_app("examples/styled-demo.R")
 
 library(sparkle)
 library(zeallot)
 
-StyledDemo <- function() {
-  c(count, setCount) %<-% use_state(0)
+App <- function() {
+  c(count, set_count) %<-% use_state(0)
 
   # Create custom styled components
   PrimaryButton <- styled_button(
@@ -65,9 +67,9 @@ StyledDemo <- function() {
       ),
       CountDisplay(paste("Count:", count())),
       ButtonRow(
-        PrimaryButton("- Decrement", on_click = \() setCount(count() - 1)),
-        PrimaryButton("Reset", on_click = \() setCount(0)),
-        PrimaryButton("+ Increment", on_click = \() setCount(count() + 1))
+        PrimaryButton("- Decrement", on_click = \() set_count(count() - 1)),
+        PrimaryButton("Reset", on_click = \() set_count(0)),
+        PrimaryButton("+ Increment", on_click = \() set_count(count() + 1))
       ),
       tags$p(
         paste(
@@ -90,6 +92,3 @@ StyledDemo <- function() {
     create_style_tag()  # Inject CSS at the end
   )
 }
-
-# Launch the app
-sparkle_app(StyledDemo, port = 3000)

@@ -14,5 +14,6 @@ Depends:
 Imports:
     jsonlite,
     httpuv,
-    zeallot
+    zeallot,
+    renv
 RoxygenNote: 7.3.3

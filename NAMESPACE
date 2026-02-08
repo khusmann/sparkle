@@ -2,6 +2,7 @@
 
 S3method(print,sparkle_callback)
 S3method(print,sparkle_element)
+export(clear_cache)
 export(invoke_callback)
 export(sparkle_app)
 export(styled_button)

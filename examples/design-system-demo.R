@@ -1,30 +1,32 @@
 # Sparkle Design System Demo
 # Demonstrates using pre-built UI components from the sparkle design system
+#
+# Run with: sparkle_app("examples/design-system-demo.R")
 
 library(sparkle)
 library(zeallot)
 
-DesignSystemDemo <- function() {
-  c(name, setName) %<-% use_state("")
-  c(email, setEmail) %<-% use_state("")
-  c(message, setMessage) %<-% use_state("")
-  c(showSuccess, setShowSuccess) %<-% use_state(FALSE)
+App <- function() {
+  c(name, set_name) %<-% use_state("")
+  c(email, set_email) %<-% use_state("")
+  c(message, set_message) %<-% use_state("")
+  c(show_success, set_show_success) %<-% use_state(FALSE)
 
   handleSubmit <- function() {
     if (nchar(name()) > 0 && nchar(email()) > 0) {
-      setMessage(paste("Welcome,", name(), "! We'll contact you at", email()))
-      setShowSuccess(TRUE)
+      set_message(paste("Welcome,", name(), "! We'll contact you at", email()))
+      set_show_success(TRUE)
     } else {
-      setMessage("Please fill in all fields")
-      setShowSuccess(FALSE)
+      set_message("Please fill in all fields")
+      set_show_success(FALSE)
     }
   }
 
   handleReset <- function() {
-    setName("")
-    setEmail("")
-    setMessage("")
-    setShowSuccess(FALSE)
+    set_name("")
+    set_email("")
+    set_message("")
+    set_show_success(FALSE)
   }
 
   # Render with injected styles
@@ -58,7 +60,7 @@ DesignSystemDemo <- function() {
               type = "text",
               placeholder = "Enter your name",
               value = name(),
-              on_change = \(e) setName(e$target$value)
+              on_change = \(e) set_name(e$target$value)
             )
           ),
 
@@ -74,7 +76,7 @@ DesignSystemDemo <- function() {
               type = "email",
               placeholder = "your.email@example.com",
               value = email(),
-              on_change = \(e) setEmail(e$target$value)
+              on_change = \(e) set_email(e$target$value)
             )
           ),
 
@@ -101,7 +103,7 @@ DesignSystemDemo <- function() {
           if (nchar(message()) > 0) {
             ui$Alert(
               message(),
-              variant = if (showSuccess()) "success" else "warning"
+              variant = if (show_success()) "success" else "warning"
             )
           }
         )
@@ -177,6 +179,3 @@ DesignSystemDemo <- function() {
     create_style_tag()  # Inject CSS at the end
   )
 }
-
-# Launch the app
-sparkle_app(DesignSystemDemo, port = 3000)

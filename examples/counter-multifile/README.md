@@ -55,10 +55,10 @@ Contains pure helper functions that don't render UI:
 - `get_count_color()` - Determine colors for different count values
 
 ### components.R
-Contains reusable UI component functions:
-- `CounterDisplay()` - Shows the current count with dynamic styling
-- `ActionButton()` - Styled button with variants
-- `StatsCard()` - Statistics display card
+Contains reusable UI component functions using Sparkle's design system and styled components:
+- `CounterDisplay()` - Shows the current count with dynamic styling (using `styled_div`)
+- `ActionButton()` - Styled button wrapper around `ui$Button` from the design system
+- `StatsCard()` - Statistics display card (using styled components)
 
 ### main.R
 Contains the main `App` component that:
@@ -66,6 +66,16 @@ Contains the main `App` component that:
 - Defines event handlers
 - Composes UI using components from `components.R`
 - Uses utilities from `utils.R`
+
+## Design System & Styling
+
+This example demonstrates two approaches to styling in Sparkle:
+
+1. **Design System (`ui` components)**: The `ActionButton` component uses `ui$Button`, which is part of Sparkle's built-in design system with pre-configured variants (primary, secondary, danger, success, warning).
+
+2. **Styled Components**: The `CounterDisplay` and `StatsCard` components use `styled_div()` to create custom styled components with dynamic styling based on state.
+
+Both approaches generate CSS classes and inject them via `create_style_tag()`, avoiding inline style limitations.
 
 ## Benefits of Multi-File Organization
 

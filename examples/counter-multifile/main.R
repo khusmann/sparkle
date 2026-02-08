@@ -39,7 +39,7 @@ App <- function() {
   }
 
   # Render UI
-  tags$div(
+  ui_content <- tags$div(
     style = list(
       max_width = "600px",
       margin = "40px auto",
@@ -109,5 +109,11 @@ App <- function() {
         "└── utils.R        (Helper functions)"
       )
     )
+  )
+
+  # Wrap with style tag for styled components
+  tags$div(
+    ui_content,
+    create_style_tag()
   )
 }

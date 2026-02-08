@@ -147,9 +147,15 @@ class SparkleBridge {
       # Get all objects in namespace (potential exports)
       all_objs <- ls(ns, all.names = TRUE)
 
-      # Determine exports (public objects, not starting with .)
-      # Include both functions and non-functions (like 'tags' list)
+      # Export all functions plus specific non-function objects
+      # This ensures internal helper functions are accessible to exported functions
       exports <- all_objs[!startsWith(all_objs, ".")]
+
+      # Keep only functions and the 'tags' list
+      exports <- exports[sapply(exports, function(x) {
+        obj <- get(x, envir = ns)
+        is.function(obj) || x == "tags"
+      })]
 
       # Create .__NAMESPACE__. structure (required for proper namespace)
       nsInfo <- new.env(parent = baseenv())

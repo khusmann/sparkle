@@ -210,9 +210,11 @@ class ComponentFactory {
         : this.toReactElement(children, renderSequence);
 
       // Check if this is a controlled text input that needs optimistic updates
+      // Include text-like input types: text, email, url, tel, search, password
+      const textInputTypes = ['text', 'email', 'url', 'tel', 'search', 'password'];
       const isControlledTextInput =
         tag === 'input' &&
-        (!transformedProps.type || transformedProps.type === 'text') &&
+        (!transformedProps.type || textInputTypes.includes(transformedProps.type)) &&
         transformedProps.value !== undefined &&
         transformedProps.onChange !== undefined;
 

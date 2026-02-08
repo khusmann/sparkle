@@ -98,6 +98,16 @@ function OptimisticInput({ value: rValue, renderSequence, onChange: rOnChange, .
   React.useEffect(() => {
     if (renderSequence === undefined || renderSequence >= latestSequence.current) {
       setLocalValue(rValue);
+      // When accepting a programmatic change (no sequence):
+      // 1. Clear any pending debounced callback to prevent stale updates
+      // 2. Sync latestSequence with current sequenceNumber
+      if (renderSequence === undefined) {
+        if (debounceTimer.current) {
+          clearTimeout(debounceTimer.current);
+          debounceTimer.current = null;
+        }
+        latestSequence.current = sequenceNumber.current;
+      }
     }
   }, [rValue, renderSequence]);
 
@@ -163,10 +173,10 @@ class ComponentFactory {
    * Convert an R virtual DOM description to a React element
    *
    * @param {Object|string|number} rDescription - R object describing the virtual DOM
-   * @param {number|null} renderSequence - Optional sequence number from the render
+   * @param {number|undefined} renderSequence - Optional sequence number from the render
    * @returns {React.ReactElement|string|number} - React element
    */
-  toReactElement(rDescription, renderSequence = null) {
+  toReactElement(rDescription, renderSequence = undefined) {
     // Handle primitives (text nodes)
     if (
       typeof rDescription === 'string' ||

@@ -5,6 +5,20 @@ webR and React.
 
 **Note**: This is exploratory work. Not suitable for production use.
 
+## Examples
+
+Live interactive demos are available at [khusmann.github.io/sparkle](https://khusmann.github.io/sparkle)
+
+See the `examples/` directory for source code:
+
+- [`counter.R`](https://khusmann.github.io/sparkle/counter) - Basic counter with increment/decrement
+- [`todo.R`](https://khusmann.github.io/sparkle/todo) - Task manager with complex state management
+- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo) - Pre-built UI components showcase
+- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo) - Custom styled components with CSS-in-R
+- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile) - Multi-file app organization best practices
+
+Each example runs entirely in your browser via webR with no server required.
+
 ## Overview
 
 Shiny already runs in the browser via
@@ -240,14 +254,6 @@ sparkle_app(
   host = "127.0.0.1" # Host address
 )
 ```
-
-## Examples
-
-See the `examples/` directory for more examples:
-
-- `examples/counter.R` - Basic counter with increment/decrement
-- `examples/todo.R` - Todo list (coming soon)
-- `examples/form.R` - Form with validation (coming soon)
 
 ## Status and Limitations
 

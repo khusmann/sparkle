@@ -1,0 +1,305 @@
+name: Deploy Examples to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.0'
+          use-public-rspm: true
+
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ hashFiles('DESCRIPTION') }}
+          restore-keys: |
+            ${{ runner.os }}-r-
+
+      - name: Install R dependencies
+        run: |
+          install.packages(c("jsonlite", "httpuv", "zeallot", "renv", "devtools"))
+        shell: Rscript {0}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install JavaScript dependencies
+        run: pnpm install
+
+      - name: Build JavaScript bundle
+        run: pnpm run build
+
+      - name: Create build directory
+        run: mkdir -p build
+
+      - name: Build examples
+        run: |
+          devtools::load_all()
+          sparkle_build("examples/counter.R", "build/counter")
+          sparkle_build("examples/design-system-demo.R", "build/design-system-demo")
+          sparkle_build("examples/styled-demo.R", "build/styled-demo")
+          sparkle_build("examples/todo.R", "build/todo")
+          sparkle_build("examples/counter-multifile/", "build/counter-multifile")
+        shell: Rscript {0}
+
+      - name: Create landing page
+        run: |
+          cat > build/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Sparkle Examples - Interactive Demos</title>
+            <style>
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 2rem 1rem;
+              }
+
+              .container {
+                max-width: 1200px;
+                margin: 0 auto;
+              }
+
+              header {
+                text-align: center;
+                color: white;
+                margin-bottom: 3rem;
+              }
+
+              header h1 {
+                font-size: 3rem;
+                margin-bottom: 0.5rem;
+                font-weight: 700;
+              }
+
+              header p {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+                opacity: 0.95;
+              }
+
+              header a {
+                color: white;
+                text-decoration: none;
+                border: 2px solid white;
+                padding: 0.5rem 1.5rem;
+                border-radius: 6px;
+                display: inline-block;
+                transition: all 0.3s ease;
+                font-weight: 500;
+              }
+
+              header a:hover {
+                background: white;
+                color: #667eea;
+              }
+
+              .examples-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+                margin-bottom: 3rem;
+              }
+
+              .example-card {
+                background: white;
+                border-radius: 12px;
+                padding: 2rem;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+              }
+
+              .example-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+              }
+
+              .example-card.featured {
+                border: 3px solid #667eea;
+              }
+
+              .example-card h2 {
+                color: #667eea;
+                margin-bottom: 1rem;
+                font-size: 1.5rem;
+              }
+
+              .example-card p {
+                color: #666;
+                margin-bottom: 1.5rem;
+                font-size: 0.95rem;
+              }
+
+              .button {
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 6px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                text-align: center;
+              }
+
+              .button:hover {
+                transform: translateX(5px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+              }
+
+              footer {
+                text-align: center;
+                color: white;
+                margin-top: 3rem;
+                padding-top: 2rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.3);
+              }
+
+              footer a {
+                color: white;
+                text-decoration: none;
+                font-weight: 500;
+              }
+
+              footer a:hover {
+                text-decoration: underline;
+              }
+
+              @media (max-width: 768px) {
+                header h1 {
+                  font-size: 2rem;
+                }
+
+                header p {
+                  font-size: 1rem;
+                }
+
+                .examples-grid {
+                  grid-template-columns: 1fr;
+                  gap: 1.5rem;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <header>
+                <h1>✨ Sparkle Examples</h1>
+                <p>Client-side reactive framework for R with React</p>
+                <a href="https://github.com/khusmann/sparkle" target="_blank">View on GitHub</a>
+              </header>
+
+              <main>
+                <div class="examples-grid">
+
+                  <div class="example-card">
+                    <h2>Counter</h2>
+                    <p>Basic counter with increment/decrement. A simple introduction to useState and event handlers.</p>
+                    <a href="./counter/" class="button">Launch Demo →</a>
+                  </div>
+
+                  <div class="example-card">
+                    <h2>TODO List</h2>
+                    <p>Task manager demonstrating complex state management with lists, filtering, and multiple state variables.</p>
+                    <a href="./todo/" class="button">Launch Demo →</a>
+                  </div>
+
+                  <div class="example-card">
+                    <h2>Design System Demo</h2>
+                    <p>Showcase of pre-built UI components including buttons, badges, alerts, inputs, and layout components.</p>
+                    <a href="./design-system-demo/" class="button">Launch Demo →</a>
+                  </div>
+
+                  <div class="example-card">
+                    <h2>Styled Demo</h2>
+                    <p>Creating custom styled components with CSS-in-R, demonstrating dynamic styling and hover effects.</p>
+                    <a href="./styled-demo/" class="button">Launch Demo →</a>
+                  </div>
+
+                  <div class="example-card featured">
+                    <h2>Multi-File Counter</h2>
+                    <p>Best practices for organizing Sparkle apps across multiple files with reusable components and utilities.</p>
+                    <a href="./counter-multifile/" class="button">Launch Demo →</a>
+                  </div>
+
+                </div>
+              </main>
+
+              <footer>
+                <p>Built with Sparkle • <a href="https://github.com/khusmann/sparkle">Documentation</a></p>
+              </footer>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './build'
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

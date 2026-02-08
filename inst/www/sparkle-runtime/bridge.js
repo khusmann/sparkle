@@ -151,10 +151,10 @@ class SparkleBridge {
       # This ensures internal helper functions are accessible to exported functions
       exports <- all_objs[!startsWith(all_objs, ".")]
 
-      # Keep only functions and the 'tags' list
+      # Keep only functions and specific lists (tags, ui)
       exports <- exports[sapply(exports, function(x) {
         obj <- get(x, envir = ns)
-        is.function(obj) || x == "tags"
+        is.function(obj) || x %in% c("tags", "ui")
       })]
 
       # Create .__NAMESPACE__. structure (required for proper namespace)

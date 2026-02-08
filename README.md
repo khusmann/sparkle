@@ -7,20 +7,22 @@ webR and React.
 
 ## Examples
 
-Live interactive demos are available at
-[khusmann.github.io/sparkle](https://khusmann.github.io/sparkle)
+Live interactive demos (source in `examples/`):
 
-See the `examples/` directory for source code:
-
-- [`counter.R`](https://khusmann.github.io/sparkle/counter) ([source](https://github.com/khusmann/sparkle/blob/main/examples/counter.R)) - Basic counter with
-  increment/decrement
-- [`todo.R`](https://khusmann.github.io/sparkle/todo) ([source](https://github.com/khusmann/sparkle/blob/main/examples/todo.R)) - Task manager with
-  complex state management
-- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo) ([source](https://github.com/khusmann/sparkle/blob/main/examples/design-system-demo.R)) -
+- [`counter.R`](https://khusmann.github.io/sparkle/counter)
+  ([source](https://github.com/khusmann/sparkle/blob/main/examples/counter.R)) -
+  Basic counter with increment/decrement
+- [`todo.R`](https://khusmann.github.io/sparkle/todo)
+  ([source](https://github.com/khusmann/sparkle/blob/main/examples/todo.R)) -
+  Task manager with complex state management
+- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo)
+  ([source](https://github.com/khusmann/sparkle/blob/main/examples/design-system-demo.R)) -
   Pre-built UI components showcase
-- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo) ([source](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R)) - Custom
-  styled components with CSS-in-R
-- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile) ([source](https://github.com/khusmann/sparkle/tree/main/examples/counter-multifile)) -
+- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo)
+  ([source](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R)) -
+  Custom styled components with CSS-in-R
+- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile)
+  ([source](https://github.com/khusmann/sparkle/tree/main/examples/counter-multifile)) -
   Multi-file app organization best practices
 
 Each example runs entirely in your browser via webR with no server required.
@@ -292,7 +294,8 @@ Components support variants (`primary`, `secondary`, `success`, `danger`,
 
 #### `sparkle_app(path, port = 3000)`
 
-Launches a development server for live editing. Accepts either a single `.R` file or a directory containing multiple `.R` files.
+Launches a development server for live editing. Accepts either a single `.R`
+file or a directory containing multiple `.R` files.
 
 ```r
 # Single-file app
@@ -305,11 +308,14 @@ sparkle_app("my-app/")
 sparkle_app()
 ```
 
-**Important:** Your root component must be named `App`. For multi-file apps, define `App <- function() { ... }` in any of your `.R` files.
+**Important:** Your root component must be named `App`. For multi-file apps,
+define `App <- function() { ... }` in any of your `.R` files.
 
 #### `sparkle_build(app_path, output_dir)`
 
-Creates a static build for deployment to GitHub Pages, Netlify, or any static hosting. Bundles all R package dependencies locally for complete offline functionality.
+Creates a static build for deployment to GitHub Pages, Netlify, or any static
+hosting. Bundles all R package dependencies locally for complete offline
+functionality.
 
 ```r
 # Build single-file app
@@ -322,7 +328,8 @@ sparkle_build("my-app/", "build/my-app")
 sparkle_build("counter.R", "build/counter", open_browser = TRUE)
 ```
 
-The output directory contains a self-contained static website with no external CDN dependencies.
+The output directory contains a self-contained static website with no external
+CDN dependencies.
 
 ## Status and Limitations
 

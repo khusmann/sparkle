@@ -13,6 +13,7 @@ pnpm-lock.yaml
 # Build outputs
 inst/www/bundle.js
 inst/www/bundle.js.map
+build/
 
 # IDE
 .vscode/

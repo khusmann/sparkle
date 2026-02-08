@@ -6,34 +6,46 @@
 library(sparkle)
 library(zeallot)
 
-App <- function() {
-  c(count, set_count) %<-% use_state(0)
+# Static styled components at module level
+PrimaryButton <- styled_button(
+  background_color = "#3b82f6",
+  color = "white",
+  padding = "12px 24px",
+  border = "none",
+  border_radius = "6px",
+  font_size = "16px",
+  font_weight = "500",
+  cursor = "pointer",
+  transition = "all 0.2s ease",
+  css = "
+    &:hover {
+      background-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    &:active {
+      transform: translateY(0);
+    }
+  "
+)
 
-  # Create custom styled components
-  PrimaryButton <- styled_button(
-    background_color = "#3b82f6",
-    color = "white",
-    padding = "12px 24px",
-    border = "none",
-    border_radius = "6px",
-    font_size = "16px",
-    font_weight = "500",
-    cursor = "pointer",
-    transition = "all 0.2s ease",
-    css = "
-      &:hover {
-        background-color: #2563eb;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-      &:active {
-        transform: translateY(0);
-      }
-    "
-  )
+Container <- styled_div(
+  max_width = "600px",
+  margin = "40px auto",
+  padding = "30px",
+  font_family = "system-ui, -apple-system, sans-serif"
+)
 
-  # Styled display with dynamic colors based on count
-  CountDisplay <- styled_div(
+ButtonRow <- styled_div(
+  display = "flex",
+  gap = "12px",
+  justify_content = "center",
+  margin_top = "20px"
+)
+
+# Wrapper component with dynamic styles
+CountDisplay <- function(count) {
+  StyledDisplay <- styled_div(
     font_size = "48px",
     font_weight = "bold",
     text_align = "center",
@@ -45,21 +57,13 @@ App <- function() {
     transition = "color 0.3s ease"
   )
 
-  Container <- styled_div(
-    max_width = "600px",
-    margin = "40px auto",
-    padding = "30px",
-    font_family = "system-ui, -apple-system, sans-serif"
-  )
+  StyledDisplay(paste("Count:", count))
+}
 
-  ButtonRow <- styled_div(
-    display = "flex",
-    gap = "12px",
-    justify_content = "center",
-    margin_top = "20px"
-  )
+App <- function() {
+  c(count, set_count) %<-% use_state(0)
 
-  # Render component
+  # Render component - no styled components defined here
   Container(
     tags$h1(
       "Styled Components Demo ✨",
@@ -76,7 +80,7 @@ App <- function() {
         )
       )
     ),
-    CountDisplay(paste("Count:", count)),
+    CountDisplay(count),
     ButtonRow(
       PrimaryButton("- Decrement", on_click = \() set_count(\(c) c - 1)),
       PrimaryButton("Reset", on_click = \() set_count(0)),

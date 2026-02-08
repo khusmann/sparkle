@@ -7,7 +7,7 @@
 #' @param count Current count value
 #' @return Sparkle element
 CounterDisplay <- function(count) {
-  # Create styled components for the display
+  # Create styled components with dynamic values
   DisplayContainer <- styled_div(
     text_align = "center",
     padding = "30px",
@@ -55,6 +55,45 @@ ActionButton <- function(label, on_click, variant = "primary") {
   )
 }
 
+# Static styled components for stats
+StatItemContainer <- styled_div(text_align = "center")
+
+StatLabel <- styled_div(
+  font_size = "14px",
+  color = "#6b7280",
+  margin_bottom = "5px"
+)
+
+StatValue <- styled_div(
+  font_size = "24px",
+  font_weight = "bold",
+  color = "#111827"
+)
+
+StatsCardContainer <- styled_div(
+  background_color = "#ffffff",
+  border = "1px solid #e5e7eb",
+  border_radius = "8px",
+  padding = "20px",
+  margin_top = "20px",
+  display = "flex",
+  justify_content = "space_around"
+)
+
+#' Stat item component
+#'
+#' Displays a labeled statistic value
+#'
+#' @param label The stat label
+#' @param value The stat value
+#' @return Sparkle element
+StatItem <- function(label, value) {
+  StatItemContainer(
+    StatLabel(label),
+    StatValue(value)
+  )
+}
+
 #' Stats card component
 #'
 #' Shows statistics about the counter using styled components
@@ -63,38 +102,7 @@ ActionButton <- function(label, on_click, variant = "primary") {
 #' @param total_clicks Total number of clicks
 #' @return Sparkle element
 StatsCard <- function(count, total_clicks) {
-  # Create a styled stat item component
-  StatItem <- function(label, value) {
-    ItemContainer <- styled_div(text_align = "center")
-    Label <- styled_div(
-      font_size = "14px",
-      color = "#6b7280",
-      margin_bottom = "5px"
-    )
-    Value <- styled_div(
-      font_size = "24px",
-      font_weight = "bold",
-      color = "#111827"
-    )
-
-    ItemContainer(
-      Label(label),
-      Value(value)
-    )
-  }
-
-  # Use ui$Card for the container
-  CardContainer <- styled_div(
-    background_color = "#ffffff",
-    border = "1px solid #e5e7eb",
-    border_radius = "8px",
-    padding = "20px",
-    margin_top = "20px",
-    display = "flex",
-    justify_content = "space_around"
-  )
-
-  CardContainer(
+  StatsCardContainer(
     StatItem("Current Value", count),
     StatItem("Total Clicks", total_clicks),
     StatItem("Absolute Value", abs(count))

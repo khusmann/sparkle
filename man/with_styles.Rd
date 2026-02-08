@@ -14,6 +14,6 @@ The wrapped output with styles injected
 }
 \description{
 Wraps a component's output to include all registered CSS styles.
-This is called automatically when styled components are used.
+This is called automatically by the Sparkle bridge when components render.
 }
 \keyword{internal}

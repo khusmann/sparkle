@@ -60,46 +60,40 @@ App <- function() {
   )
 
   # Render component
-  result <- Container(
-      tags$h1(
-        "Styled Components Demo ✨",
-        style = list(text_align = "center", color = "#374151")
-      ),
-      tags$p(
-        style = list(text_align = "center", color = "#6b7280"),
-        "Custom styled components with CSS-in-R. ",
-        tags$a(
-          "View source",
-          href = paste0(
-            "https://github.com/khusmann/sparkle/",
-            "blob/main/examples/styled-demo.R"
-          )
-        )
-      ),
-      CountDisplay(paste("Count:", count)),
-      ButtonRow(
-        PrimaryButton("- Decrement", on_click = \() set_count(\(c) c - 1)),
-        PrimaryButton("Reset", on_click = \() set_count(0)),
-        PrimaryButton("+ Increment", on_click = \() set_count(\(c) c + 1))
-      ),
-      tags$p(
-        paste(
-          "You've clicked",
-          abs(count),
-          "times",
-          if (count > 0) "(positive)" else if (count < 0) "(negative)" else ""
-        ),
-        style = list(
-          text_align = "center",
-          color = "#6b7280",
-          margin_top = "20px"
+  Container(
+    tags$h1(
+      "Styled Components Demo ✨",
+      style = list(text_align = "center", color = "#374151")
+    ),
+    tags$p(
+      style = list(text_align = "center", color = "#6b7280"),
+      "Custom styled components with CSS-in-R. ",
+      tags$a(
+        "View source",
+        href = paste0(
+          "https://github.com/khusmann/sparkle/",
+          "blob/main/examples/styled-demo.R"
         )
       )
+    ),
+    CountDisplay(paste("Count:", count)),
+    ButtonRow(
+      PrimaryButton("- Decrement", on_click = \() set_count(\(c) c - 1)),
+      PrimaryButton("Reset", on_click = \() set_count(0)),
+      PrimaryButton("+ Increment", on_click = \() set_count(\(c) c + 1))
+    ),
+    tags$p(
+      paste(
+        "You've clicked",
+        abs(count),
+        "times",
+        if (count > 0) "(positive)" else if (count < 0) "(negative)" else ""
+      ),
+      style = list(
+        text_align = "center",
+        color = "#6b7280",
+        margin_top = "20px"
+      )
     )
-
-  # Wrap with style tag AFTER all styled components have registered
-  tags$div(
-    result,
-    create_style_tag()  # Inject CSS at the end
   )
 }

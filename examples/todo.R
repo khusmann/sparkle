@@ -24,7 +24,7 @@ App <- function() {
   completed_count <- sum(vapply(todos, \(t) t$completed, logical(1)))
   remaining_count <- total_count - completed_count
 
-  result <- ui$Container(
+  ui$Container(
     max_width = "800px",
 
     # Header
@@ -231,11 +231,5 @@ App <- function() {
         )
       )
     }
-  )
-
-  # Wrap with style tag to inject CSS
-  tags$div(
-    result,
-    create_style_tag()
   )
 }

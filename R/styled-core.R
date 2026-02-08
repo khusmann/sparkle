@@ -8,10 +8,16 @@
 NULL
 
 # Environment to track generated styles (persists across renders)
-.sparkle_styles <- new.env(parent = emptyenv())
+# Only initialize if not already present (e.g., created by webR bridge)
+if (!exists(".sparkle_styles")) {
+  .sparkle_styles <- new.env(parent = emptyenv())
+}
 
 # Counter for generating unique class names
-.style_counter <- 0
+# Only initialize if not already present (e.g., created by webR bridge)
+if (!exists(".style_counter")) {
+  .style_counter <- 0
+}
 
 #' Generate unique class name
 #'
@@ -92,12 +98,16 @@ clear_styles <- function() {
 #' Wrap component output with style tags
 #'
 #' Wraps a component's output to include all registered CSS styles.
-#' This is called automatically when styled components are used.
+#' This is called automatically by the Sparkle bridge when components render.
 #'
 #' @param component_output The virtual DOM output from a component
 #' @return The wrapped output with styles injected
 #' @keywords internal
 with_styles <- function(component_output) {
+  # CRITICAL: Force evaluation of component_output BEFORE creating style tag
+  # R uses lazy evaluation, so App() won't run until we use component_output
+  force(component_output)
+
   style_tag <- create_style_tag()
 
   if (is.null(style_tag)) {

@@ -10,15 +10,23 @@ webR and React.
 Interactive demos running in your browser ([source in `examples/`](examples/)):
 
 ### Core Concepts
-- **[Counter](https://khusmann.github.io/sparkle/counter)** - State management basics
-- **[Todo List](https://khusmann.github.io/sparkle/todo)** - Complex state with lists and filters
+
+- **[Counter](https://khusmann.github.io/sparkle/counter)** - State management
+  basics
+- **[Todo List](https://khusmann.github.io/sparkle/todo)** - Complex state with
+  lists and filters
 
 ### Styling
-- **[Design System](https://khusmann.github.io/sparkle/design-system-demo)** - Pre-built UI components
-- **[Custom Styles](https://khusmann.github.io/sparkle/styled-demo)** - CSS-in-R styling
+
+- **[Design System](https://khusmann.github.io/sparkle/design-system-demo)** -
+  Pre-built UI components
+- **[Custom Styles](https://khusmann.github.io/sparkle/styled-demo)** - CSS-in-R
+  styling
 
 ### Code Organization
-- **[Multi-file App](https://khusmann.github.io/sparkle/counter-multifile)** - Project organization patterns
+
+- **[Multi-file App](https://khusmann.github.io/sparkle/counter-multifile)** -
+  Project organization patterns
 
 ## Overview
 
@@ -261,7 +269,7 @@ PrimaryButton("Click me", on_click = handler)
 ```
 
 Style properties use snake_case and can be computed dynamically from state.
-Always call `create_style_tag()` at the end of your component to inject CSS. See
+Check out
 [`styled-demo.R`](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R).
 
 ### Design System

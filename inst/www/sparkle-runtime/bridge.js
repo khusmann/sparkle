@@ -119,6 +119,10 @@ class SparkleBridge {
       .sparkle_hook_state$state_values <- list()
       .sparkle_hook_state$current_event_sequence <- NULL
       .sparkle_hook_state$current_render_sequence <- NULL
+
+      # Initialize style registry in global environment
+      .sparkle_styles <- new.env(parent = emptyenv())
+      .style_counter <- 0L
     `);
 
     const rSource = getCombinedRSource();
@@ -128,6 +132,8 @@ class SparkleBridge {
       .sparkle_ns <- new.env(parent = baseenv())
       .sparkle_ns$.sparkle_callbacks <- .sparkle_callbacks
       .sparkle_ns$.sparkle_hook_state <- .sparkle_hook_state
+      .sparkle_ns$.sparkle_styles <- .sparkle_styles
+      .sparkle_ns$.style_counter <- .style_counter
 
       # Evaluate sparkle source code in namespace
       eval(parse(text = ${JSON.stringify(rSource)}), envir = .sparkle_ns)
@@ -139,7 +145,7 @@ class SparkleBridge {
         "styled_button", "styled_div", "styled_h1", "styled_h2", "styled_h3",
         "styled_input", "styled_label", "styled_p", "styled_span",
         "invoke_callback", "clear_cache",
-        "create_style_tag", "clear_styles"
+        "create_style_tag", "clear_styles", "with_styles", "create_element"
       )
 
       # Copy exports directly to global environment
@@ -384,8 +390,8 @@ class SparkleBridge {
         `);
       }
 
-      // Execute the component function using the stored component name
-      const result = await this.webR.evalR(`${this.componentName}()`);
+      // Execute the component function and automatically wrap with styles
+      const result = await this.webR.evalR(`with_styles(${this.componentName}())`);
 
       // Convert the result to plain JavaScript
       const jsResult = await this.convertRObject(result);

@@ -3,19 +3,25 @@
 A client-side reactive framework for R that runs entirely in the browser using
 webR and React.
 
-**Note**: This is exploratory work. Not suitable for production use.
+**Note**: Experimental weekend project. Not production-ready.
 
 ## Examples
 
-Live interactive demos are available at [khusmann.github.io/sparkle](https://khusmann.github.io/sparkle)
+Live interactive demos are available at
+[khusmann.github.io/sparkle](https://khusmann.github.io/sparkle)
 
 See the `examples/` directory for source code:
 
-- [`counter.R`](https://khusmann.github.io/sparkle/counter) - Basic counter with increment/decrement
-- [`todo.R`](https://khusmann.github.io/sparkle/todo) - Task manager with complex state management
-- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo) - Pre-built UI components showcase
-- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo) - Custom styled components with CSS-in-R
-- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile) - Multi-file app organization best practices
+- [`counter.R`](https://khusmann.github.io/sparkle/counter) - Basic counter with
+  increment/decrement
+- [`todo.R`](https://khusmann.github.io/sparkle/todo) - Task manager with
+  complex state management
+- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo) -
+  Pre-built UI components showcase
+- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo) - Custom
+  styled components with CSS-in-R
+- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile) -
+  Multi-file app organization best practices
 
 Each example runs entirely in your browser via webR with no server required.
 
@@ -241,19 +247,82 @@ tags$input(
 - `on_key_down` → `onKeyDown`
 - And more...
 
-### App Launcher
+### Styled Components
 
-#### `sparkle_app(file_path, port = 3000)`
-
-Launches a Sparkle application from an R file.
+Create custom styled components with CSS-in-R. Use `styled_*` functions
+(`styled_div`, `styled_button`, `styled_input`, etc.) to create reusable styled
+elements:
 
 ```r
-sparkle_app(
-  "counter.R",       # Path to component file
-  port = 3000,       # Server port (default: 3000)
-  host = "127.0.0.1" # Host address
+PrimaryButton <- styled_button(
+  background_color = "#3b82f6",
+  color = "white",
+  padding = "12px 24px",
+  border_radius = "6px",
+  css = "&:hover { opacity: 0.9; }"
 )
+
+PrimaryButton("Click me", on_click = handler)
 ```
+
+Style properties use snake_case and can be computed dynamically from state.
+Always call `create_style_tag()` at the end of your component to inject CSS. See
+[`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo).
+
+### Design System
+
+Pre-built UI components are available via the `ui` namespace:
+
+```r
+ui$Button("Submit", variant = "primary", size = "lg", on_click = handler)
+ui$Card(tags$h2("Title"), tags$p("Content"))
+ui$Input(type = "text", value = name, on_change = \(e) set_name(e$target$value))
+ui$Badge("New", variant = "success")
+ui$Alert("Success message", variant = "success")
+ui$Stack(direction = "horizontal", spacing = "md", ...)
+ui$Container(max_width = "800px", ...)
+```
+
+Components support variants (`primary`, `secondary`, `success`, `danger`,
+`warning`, `info`) and spacing tokens (`xs`, `sm`, `md`, `lg`, `xl`). Requires
+`create_style_tag()` like styled components. See
+[`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo).
+
+### App Launching and Building
+
+#### `sparkle_app(path, port = 3000)`
+
+Launches a development server for live editing. Accepts either a single `.R` file or a directory containing multiple `.R` files.
+
+```r
+# Single-file app
+sparkle_app("counter.R")
+
+# Multi-file app (folder)
+sparkle_app("my-app/")
+
+# Current directory
+sparkle_app()
+```
+
+**Important:** Your root component must be named `App`. For multi-file apps, define `App <- function() { ... }` in any of your `.R` files.
+
+#### `sparkle_build(app_path, output_dir)`
+
+Creates a static build for deployment to GitHub Pages, Netlify, or any static hosting. Bundles all R package dependencies locally for complete offline functionality.
+
+```r
+# Build single-file app
+sparkle_build("counter.R", "build/counter")
+
+# Build multi-file app
+sparkle_build("my-app/", "build/my-app")
+
+# Build and open in browser
+sparkle_build("counter.R", "build/counter", open_browser = TRUE)
+```
+
+The output directory contains a self-contained static website with no external CDN dependencies.
 
 ## Status and Limitations
 

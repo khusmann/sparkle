@@ -152,7 +152,11 @@ sparkle_app <- function(path = ".", port = 3000, host = "127.0.0.1", launch_brow
         # Inject the component code, name, and dependencies
         component_json <- jsonlite::toJSON(bundle_info$app_code, auto_unbox = TRUE)
         component_name_json <- jsonlite::toJSON(bundle_info$component_name, auto_unbox = TRUE)
-        dependencies_json <- jsonlite::toJSON(bundle_info$dependencies)
+        # Ensure dependencies is serialized as an array, not an object
+        message("DEBUG: dependencies = ", paste(bundle_info$dependencies, collapse = ", "))
+        message("DEBUG: class = ", class(bundle_info$dependencies))
+        message("DEBUG: length = ", length(bundle_info$dependencies))
+        dependencies_json <- jsonlite::toJSON(as.character(bundle_info$dependencies), auto_unbox = FALSE)
 
         html_content <- sub(
           "window.SPARKLE_COMPONENT_CODE = '';",
@@ -185,8 +189,12 @@ sparkle_app <- function(path = ".", port = 3000, host = "127.0.0.1", launch_brow
         file_path <- file.path(bundle_info$bundle_dir, substring(path, 2))
 
         if (file.exists(file_path) && !file.info(file_path)$isdir) {
+          message("DEBUG: Serving repo file: ", basename(file_path))
           return(serve_static_file(file_path, cors_headers))
         } else {
+          message("DEBUG: File not found: ", file_path)
+          message("DEBUG: bundle_dir = ", bundle_info$bundle_dir)
+          message("DEBUG: Files in repo dir: ", paste(list.files(file.path(bundle_info$bundle_dir, "repo"), recursive = TRUE), collapse = ", "))
           return(list(
             status = 404L,
             headers = cors_headers,

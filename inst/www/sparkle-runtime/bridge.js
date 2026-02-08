@@ -113,8 +113,6 @@ class SparkleBridge {
    */
   async setupREnvironment() {
     // Initialize global environments for webR integration
-    // This is the ONLY R code that needs to be in JavaScript
-    // Everything else is loaded from the R package source files
     await this.webR.evalR(`
       # Initialize sparkle environment
       .sparkle_callbacks <- new.env(parent = emptyenv())
@@ -123,12 +121,64 @@ class SparkleBridge {
       .sparkle_hook_state$state_values <- list()
     `);
 
-    // Load all Sparkle R code from bundled package sources
-    // This includes: tags, hooks, callbacks, and all R API functions
+    // Create a virtual sparkle package from bundled sources
+    // This creates a proper namespace like devtools::load_all() does
     const rSource = getCombinedRSource();
-    await this.webR.evalR(rSource);
 
-    console.log('R environment set up');
+    await this.webR.evalR(`
+      # Create a proper namespace for sparkle (like devtools::load_all)
+      # This makes both library(sparkle) and sparkle::function() work
+
+      # Create namespace environment
+      ns <- new.env(parent = baseenv())
+      attr(ns, "name") <- "namespace:sparkle"
+      attr(ns, "path") <- "(virtual)"
+
+      # Set package metadata
+      ns$.packageName <- "sparkle"
+
+      # Make internal environments available in namespace
+      ns$.sparkle_callbacks <- .sparkle_callbacks
+      ns$.sparkle_hook_state <- .sparkle_hook_state
+
+      # Evaluate sparkle source code inside the namespace
+      eval(parse(text = ${JSON.stringify(rSource)}), envir = ns)
+
+      # Get all objects in namespace (potential exports)
+      all_objs <- ls(ns, all.names = TRUE)
+
+      # Determine exports (public objects, not starting with .)
+      # Include both functions and non-functions (like 'tags' list)
+      exports <- all_objs[!startsWith(all_objs, ".")]
+
+      # Create .__NAMESPACE__. structure (required for proper namespace)
+      nsInfo <- new.env(parent = baseenv())
+      nsInfo$spec <- c(name = "sparkle", version = "0.1.0")
+      nsInfo$exports <- exports
+      assign(".__NAMESPACE__.", nsInfo, envir = ns)
+
+      # Register namespace in the namespace registry
+      ns_registry <- .Internal(getNamespaceRegistry())
+      assign("sparkle", ns, envir = ns_registry)
+
+      # Create package environment (what gets attached with library())
+      pkg_env <- new.env(parent = ns)
+      attr(pkg_env, "name") <- "package:sparkle"
+      attr(pkg_env, "path") <- "(virtual)"
+
+      # Populate package environment with exports
+      for (name in exports) {
+        assign(name, get(name, envir = ns), envir = pkg_env)
+      }
+
+      # Attach package environment to search path
+      attach(pkg_env, name = "package:sparkle", pos = 2, warn.conflicts = FALSE)
+
+      # Now library(sparkle) will work (returns TRUE since already loaded)
+      # And sparkle::function() will work (uses the namespace)
+    `);
+
+    console.log('Sparkle virtual package loaded');
   }
 
   /**

@@ -62,9 +62,11 @@ create_app_bundle <- function(r_files, bundle_dir) {
 
     # Download packages
     pkg_files <- download_all_packages(deps)
+    message("Downloaded packages: ", paste(names(pkg_files), collapse = ", "))
 
     # Create CRAN-like repository structure
-    repo_dir <- file.path(bundle_dir, "repo", "bin", "emscripten", "contrib", "4.3")
+    # Use R 4.5 to match webR's current version
+    repo_dir <- file.path(bundle_dir, "repo", "bin", "emscripten", "contrib", "4.5")
     dir.create(repo_dir, recursive = TRUE, showWarnings = FALSE)
 
     # Copy all package files to repository
@@ -117,9 +119,83 @@ generate_packages_index <- function(repo_dir) {
 
   # Use tools::write_PACKAGES to generate index files
   message("Generating PACKAGES index files...")
-  tools::write_PACKAGES(
-    dir = repo_dir,
-    type = "binary",
-    verbose = FALSE
-  )
+  message("DEBUG: repo_dir = ", repo_dir)
+  message("DEBUG: .tgz files = ", paste(basename(tgz_files), collapse = ", "))
+
+  # Try to generate PACKAGES with error handling
+  tryCatch({
+    # For webR binary packages, we need to unpack the .tgz to extract DESCRIPTION
+    # then use write_PACKAGES. But for now, let's try with type = "mac.binary"
+    # which also uses .tgz format
+    tools::write_PACKAGES(
+      dir = repo_dir,
+      type = "mac.binary",  # Binary packages in .tgz format
+      verbose = TRUE
+    )
+    message("DEBUG: write_PACKAGES completed")
+  }, error = function(e) {
+    message("DEBUG: write_PACKAGES failed: ", e$message)
+    message("DEBUG: Trying manual PACKAGES generation...")
+
+    # Manually create a basic PACKAGES file
+    # This is a fallback if write_PACKAGES doesn't work
+    create_manual_packages_index(repo_dir, tgz_files)
+  })
+
+  # Verify PACKAGES files were created
+  packages_file <- file.path(repo_dir, "PACKAGES")
+  if (file.exists(packages_file)) {
+    message("DEBUG: PACKAGES file created successfully")
+    message("DEBUG: PACKAGES content preview:")
+    message(paste(head(readLines(packages_file), 10), collapse = "\n"))
+  } else {
+    warning("PACKAGES file was not created!")
+  }
+}
+
+#' Manually create PACKAGES index file
+#'
+#' @param repo_dir Repository directory
+#' @param tgz_files Vector of .tgz file paths
+#' @keywords internal
+create_manual_packages_index <- function(repo_dir, tgz_files) {
+  # Extract package info from .tgz files and create PACKAGES index
+  packages_info <- lapply(tgz_files, function(tgz) {
+    # Extract package name and version from filename
+    basename <- basename(tgz)
+    pkg_fullname <- sub("\\.tgz$", "", basename)
+    parts <- strsplit(pkg_fullname, "_")[[1]]
+
+    if (length(parts) != 2) {
+      return(NULL)
+    }
+
+    list(
+      Package = parts[1],
+      Version = parts[2],
+      File = basename
+    )
+  })
+
+  packages_info <- Filter(Negate(is.null), packages_info)
+
+  if (length(packages_info) == 0) {
+    return(invisible(NULL))
+  }
+
+  # Write PACKAGES file
+  packages_file <- file.path(repo_dir, "PACKAGES")
+
+  lines <- unlist(lapply(packages_info, function(pkg) {
+    c(
+      paste0("Package: ", pkg$Package),
+      paste0("Version: ", pkg$Version),
+      ""  # blank line between entries
+    )
+  }))
+
+  writeLines(lines, packages_file)
+  message("DEBUG: Manually created PACKAGES file")
+
+  invisible(NULL)
 }

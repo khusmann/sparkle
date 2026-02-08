@@ -29,8 +29,10 @@ download_webr_package <- function(package_name, cache_dir, webr_version = "lates
   # Download WASM package from webR CDN
   # Each package needs 3 files: .tgz, .data, .js.metadata
 
-  base_url <- sprintf("https://webr.r-wasm.org/%s", webr_version)
-  pkg_base_url <- sprintf("%s/bin/emscripten/contrib/4.3", base_url)
+  # Use the same repository URL that webR uses in the browser
+  base_url <- "https://repo.r-wasm.org"
+  # Use R 4.5 to match webR's current version
+  pkg_base_url <- sprintf("%s/bin/emscripten/contrib/4.5", base_url)
 
   # Find the actual package version by checking PACKAGES file
   packages_url <- sprintf("%s/PACKAGES", pkg_base_url)
@@ -62,31 +64,29 @@ download_webr_package <- function(package_name, cache_dir, webr_version = "lates
     metadata = sprintf("%s.js.metadata", pkg_fullname)
   )
 
-  # Check if all files are already cached AND valid
+  # Check if .tgz file is cached (required file)
   dest_files <- lapply(files, function(f) file.path(cache_dir, f))
-  all_cached <- all(sapply(dest_files, file.exists))
+  tgz_cached <- file.exists(dest_files$tgz)
 
-  # Validate cached files (check they're not empty/corrupted)
-  if (all_cached) {
-    all_valid <- all(sapply(dest_files, function(f) {
-      file.exists(f) && file.info(f)$size > 0
-    }))
+  # Validate cached .tgz file (check it's not empty/corrupted)
+  if (tgz_cached) {
+    tgz_valid <- file.info(dest_files$tgz)$size > 0
 
-    if (all_valid) {
+    if (tgz_valid) {
       message("Using cached package: ", package_name)
+      # Return only the files that actually exist
+      cached_files <- Filter(file.exists, dest_files)
       return(list(
         name = package_name,
         version = version,
-        files = dest_files
+        files = cached_files
       ))
     } else {
-      # Cached files are invalid, clean them up
-      message("Cached files for ", package_name, " are invalid, re-downloading...")
-      lapply(dest_files, function(f) {
-        if (file.exists(f)) {
-          unlink(f)
-        }
-      })
+      # Cached .tgz is invalid, clean it up
+      message("Cached .tgz for ", package_name, " is invalid, re-downloading...")
+      if (file.exists(dest_files$tgz)) {
+        unlink(dest_files$tgz)
+      }
     }
   }
 
@@ -107,30 +107,33 @@ download_webr_package <- function(package_name, cache_dir, webr_version = "lates
     })
   }
 
-  # Verify all three files were downloaded successfully
-  if (length(downloaded_files) != 3) {
+  # Verify at least the .tgz file was downloaded
+  if (!("tgz" %in% names(downloaded_files))) {
     # Clean up any partial downloads
     lapply(dest_files, function(f) {
       if (file.exists(f)) {
         unlink(f)
       }
     })
-    stop("Failed to download complete package set for ", package_name)
+    stop("Failed to download package .tgz file for ", package_name)
   }
 
-  # Validate downloaded files (ensure they're not empty)
-  all_valid <- all(sapply(dest_files, function(f) {
-    file.exists(f) && file.info(f)$size > 0
-  }))
+  # For R 4.5+, .data and .js.metadata files might not exist
+  # Just warn if they're missing but continue
+  if (length(downloaded_files) < 3) {
+    message("Note: Only ", length(downloaded_files), " file(s) downloaded for ", package_name,
+            " (.data and .js.metadata may not be required)")
+  }
 
-  if (!all_valid) {
+  # Validate the .tgz file (ensure it's not empty)
+  if (!file.exists(dest_files$tgz) || file.info(dest_files$tgz)$size == 0) {
     # Clean up invalid downloads
     lapply(dest_files, function(f) {
       if (file.exists(f)) {
         unlink(f)
       }
     })
-    stop("Downloaded files for ", package_name, " are invalid or empty")
+    stop("Downloaded .tgz file for ", package_name, " is invalid or empty")
   }
 
   return(list(

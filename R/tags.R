@@ -116,6 +116,7 @@ tags$input <- function(...) create_element("input", ...)
 tags$label <- function(...) create_element("label", ...)
 tags$br <- function(...) create_element("br", ...)
 tags$strong <- function(...) create_element("strong", ...)
+tags$a <- function(...) create_element("a", ...)
 
 #' Print method for sparkle elements
 #'

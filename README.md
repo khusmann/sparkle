@@ -7,25 +7,18 @@ webR and React.
 
 ## Examples
 
-Live interactive demos (source in `examples/`):
+Interactive demos running in your browser ([source in `examples/`](examples/)):
 
-- [`counter.R`](https://khusmann.github.io/sparkle/counter)
-  ([source](https://github.com/khusmann/sparkle/blob/main/examples/counter.R)) -
-  Basic counter with increment/decrement
-- [`todo.R`](https://khusmann.github.io/sparkle/todo)
-  ([source](https://github.com/khusmann/sparkle/blob/main/examples/todo.R)) -
-  Task manager with complex state management
-- [`design-system-demo.R`](https://khusmann.github.io/sparkle/design-system-demo)
-  ([source](https://github.com/khusmann/sparkle/blob/main/examples/design-system-demo.R)) -
-  Pre-built UI components showcase
-- [`styled-demo.R`](https://khusmann.github.io/sparkle/styled-demo)
-  ([source](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R)) -
-  Custom styled components with CSS-in-R
-- [`counter-multifile/`](https://khusmann.github.io/sparkle/counter-multifile)
-  ([source](https://github.com/khusmann/sparkle/tree/main/examples/counter-multifile)) -
-  Multi-file app organization best practices
+### Core Concepts
+- **[Counter](https://khusmann.github.io/sparkle/counter)** - State management basics
+- **[Todo List](https://khusmann.github.io/sparkle/todo)** - Complex state with lists and filters
 
-Each example runs entirely in your browser via webR with no server required.
+### Styling
+- **[Design System](https://khusmann.github.io/sparkle/design-system-demo)** - Pre-built UI components
+- **[Custom Styles](https://khusmann.github.io/sparkle/styled-demo)** - CSS-in-R styling
+
+### Code Organization
+- **[Multi-file App](https://khusmann.github.io/sparkle/counter-multifile)** - Project organization patterns
 
 ## Overview
 

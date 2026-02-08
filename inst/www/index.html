@@ -39,7 +39,7 @@
         window.SPARKLE_COMPONENT_CODE = '';
 
         // Import and initialize Sparkle
-        import('/bundle.js').then(module => {
+        import('./bundle.js').then(module => {
             const rootElement = document.getElementById('root');
             module.init(rootElement);
         }).catch(error => {

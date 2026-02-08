@@ -41,9 +41,8 @@ class SparkleBridge {
       // Determine repository URL
       let repoUrl;
       if (window.SPARKLE_USE_LOCAL_PACKAGES) {
-        // Use local repository from dev server
-        const port = window.location.port || (window.location.protocol === 'https:' ? 443 : 80);
-        repoUrl = `${window.location.protocol}//${window.location.hostname}:${port}/repo/`;
+        // Use local repository relative to current page
+        repoUrl = new URL('./repo/', window.location.href).href;
         console.log('Using local package repository:', repoUrl);
       } else {
         // Use webR CDN (default)

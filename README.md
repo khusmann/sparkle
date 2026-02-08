@@ -157,6 +157,17 @@ Sparkle hooks into React's `useState` directly:
 - Called on every render (like React function components)
 - Event handlers execute asynchronously in webR
 
+### Optimistic Updates
+
+Text inputs use optimistic updates to feel instantly responsive despite webR's overhead:
+
+- Local value updates immediately on keystroke (no waiting for R)
+- Changes are debounced (150ms) before sending to R
+- Sequence numbers prevent stale updates from overwriting newer input
+- Reset buttons and programmatic state changes work correctly
+
+This makes Sparkle apps feel as responsive as native JavaScript apps, even though they're powered by R running in WebAssembly. See [OPTIMISTIC_UPDATES.md](OPTIMISTIC_UPDATES.md) for details.
+
 ### Example: Counter Component Flow
 
 1. User clicks "Increment" button

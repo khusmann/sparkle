@@ -1,22 +1,44 @@
-# Sparkle ✨
+# Sparkle
 
-A client-side reactive framework for R that runs entirely in the browser using webR and React.
+A client-side reactive framework for R that runs entirely in the browser using
+webR and React.
+
+**Note**: This is exploratory work. Not suitable for production use.
 
 ## Overview
 
-Sparkle enables R developers to create interactive web applications using familiar R syntax, without needing a server. It combines:
-- **R** for application logic
-- **webR** to run R in the browser
-- **React** for rendering
-- **Zero server requirements** - everything runs client-side
+Shiny already runs in the browser via
+[shinylive](https://posit-dev.github.io/r-shinylive/), so this isn't about
+making Shiny client-side. Instead, this explores whether React's programming
+model - component functions, hooks like `useState`, explicit state management -
+can work in R.
 
-## Features
+Shiny uses reactive programming with reactive expressions and observers, where
+dependencies are tracked automatically. This is convenient for simple apps but
+becomes hard to debug as complexity grows. React's explicit state model is
+simpler: components are just functions called on every render, state updates are
+explicit, and re-rendering is predictable. This makes React's model easier to
+reason about, debug, and scale. But how well does this approach work in R?
 
-- 🚀 **Client-side only** - No server required, deploy anywhere
-- 🎯 **R-first API** - Write components in R with snake_case conventions
-- ⚛️  **React powered** - Leverage React's rendering and ecosystem
-- 🔗 **State management** - Uses React's `useState` hook via webR bridge
-- 📦 **Shiny-like experience** - `install.packages()` and go
+Sparkle is an experimental proof-of-concept exploring what React-style
+programming looks like in R. It combines webR (R compiled to WebAssembly) with
+React's component model and rendering engine. Component functions are written in
+R, return virtual DOM descriptions, and React handles the rendering. State lives
+in React, and R component functions are called on every render to produce UI.
+
+The experiment explores three questions: Can React's programming model translate
+to R? What does `useState`, `useEffect`, and component-based architecture look
+like with R syntax? And is the performance acceptable when R computes component
+renders while React handles the virtual DOM reconciliation?
+
+## What Works
+
+- **Client-side execution** - Everything runs in the browser via webR
+- **R-native syntax** - Write components in R with familiar snake_case
+  conventions
+- **React rendering** - Uses React's rendering engine and virtual DOM
+- **State management** - Hooks into React's `useState` via a JavaScript bridge
+- **Simple deployment** - No server infrastructure needed
 
 ## Quick Start
 
@@ -28,11 +50,13 @@ Sparkle enables R developers to create interactive web applications using famili
 ### Installation
 
 1. **Install JavaScript dependencies:**
+
    ```bash
    pnpm install
    ```
 
 2. **Build the JavaScript bundle:**
+
    ```bash
    pnpm run build
    ```
@@ -44,11 +68,13 @@ Sparkle enables R developers to create interactive web applications using famili
 
 ### Your First Sparkle App
 
+Create a file `counter.R` with your component:
+
 ```r
 library(sparkle)
 library(zeallot)
 
-Counter <- function() {
+App <- function() {
   c(count, set_count) %<-% use_state(0)
 
   tags$div(
@@ -67,15 +93,20 @@ Counter <- function() {
     )
   )
 }
+```
 
-sparkle_app(Counter)
+Then launch it by passing the file path to `sparkle_app()`:
+
+```r
+sparkle::sparkle_app("counter.R")
 ```
 
 This will:
+
 1. Start a local development server on port 3000
 2. Open your default browser
 3. Initialize webR in the browser
-4. Render your Sparkle component
+4. Load your component code and render it
 
 ## How It Works
 
@@ -87,7 +118,8 @@ R Component Function → Virtual DOM Description → Sparkle Bridge → React El
      └──────────────────── Event Callbacks (async via webR) ────────────────────────────┘
 ```
 
-1. **R Component**: You write a function that returns virtual DOM descriptions using `tags$*`
+1. **R Component**: You write a function that returns virtual DOM descriptions
+   using `tags$*`
 2. **Virtual DOM**: R creates list structures describing the UI
 3. **Bridge Layer**: JavaScript translates R structures to React elements
 4. **React**: Renders to the browser DOM
@@ -96,6 +128,7 @@ R Component Function → Virtual DOM Description → Sparkle Bridge → React El
 ### State Management
 
 Sparkle hooks into React's `useState` directly:
+
 - State lives in React/JavaScript (not synchronized to R)
 - R component functions are pure render functions
 - Called on every render (like React function components)
@@ -129,6 +162,7 @@ tags$input(...)    # <input>
 ```
 
 **Usage:**
+
 - Unnamed arguments become children
 - Named arguments become props
 
@@ -185,6 +219,7 @@ tags$input(
 ```
 
 **Supported events** (snake_case in R, automatically converted to camelCase):
+
 - `on_click` → `onClick`
 - `on_change` → `onChange`
 - `on_submit` → `onSubmit`
@@ -194,13 +229,13 @@ tags$input(
 
 ### App Launcher
 
-#### `sparkle_app(component, port = 3000)`
+#### `sparkle_app(file_path, port = 3000)`
 
-Launches a Sparkle application.
+Launches a Sparkle application from an R file.
 
 ```r
 sparkle_app(
-  Counter,           # Component function
+  "counter.R",       # Path to component file
   port = 3000,       # Server port (default: 3000)
   host = "127.0.0.1" # Host address
 )
@@ -214,24 +249,54 @@ See the `examples/` directory for more examples:
 - `examples/todo.R` - Todo list (coming soon)
 - `examples/form.R` - Form with validation (coming soon)
 
-## Development Status
+## Status and Limitations
 
-**Current Status**: Proof of Concept (POC) ✨
+**This is a proof-of-concept**, built to answer the question: "Can React's
+programming model work in R?"
 
-This is an early POC demonstrating the core architecture:
-- ✅ Basic tag rendering
-- ✅ State management (`use_state`)
-- ✅ Event handlers (`on_click`)
-- ✅ R-first deployment model
+The basic architecture works:
 
-**Coming Soon**:
-- More hooks: `use_effect`, `use_memo`, `use_callback`, `use_ref`
-- More events: `on_change`, `on_submit`, etc.
-- Form inputs with two-way binding
-- React-first mode (import Sparkle into existing React apps)
-- Performance optimizations
-- TypeScript runtime
-- Comprehensive documentation
+- HTML tag rendering
+- State management (`use_state`)
+- Event handlers
+- R-first development workflow
+
+But there are significant limitations:
+
+### No Async/Await in R
+
+This is the most significant limitation. R doesn't have async/await, and webR
+executes R code synchronously. This means:
+
+- **Long-running computations block everything** - If you run an expensive
+  calculation in an event handler, the entire R environment is blocked until it
+  completes. You can't update progress, cancel operations, or run other
+  callbacks during that time.
+
+- **Component functions must be fast** - These are called on every render (like
+  React function components). Any expensive computation here will make the UI
+  unresponsive.
+
+- **No way to yield control mid-execution** - Unlike JavaScript's `async/await`
+  or `setTimeout`, you can't break up work into chunks that yield back to the
+  event loop.
+
+**Workarounds** are possible but awkward:
+
+- Cache expensive results in state and only recompute when inputs change
+- Show loading states with no progress indication
+- Break work into multiple event handler calls (each triggers a re-render)
+- Extend the JavaScript bridge to orchestrate chunked R execution
+
+This is a fundamental architectural constraint, not something that can be easily
+fixed. A production version would need bridge-level support for
+interruptible/chunkable R computations.
+
+### Other Missing Features
+
+- Additional hooks (`use_effect`, `use_memo`, `use_callback`, `use_ref`)
+- Comprehensive event support
+- Form input handling
 
 ## Technical Details
 
@@ -263,30 +328,22 @@ sparkle/
 ### Dependencies
 
 **R Dependencies:**
+
 - `jsonlite` - JSON serialization
 - `httpuv` - Local development server
 
 **JavaScript Dependencies (bundled):**
+
 - `react` (^18.2.0)
 - `react-dom` (^18.2.0)
 - `@r-wasm/webr` - WebAssembly R runtime (loaded from CDN)
 
 ## Contributing
 
-This is an experimental project. Contributions, ideas, and feedback are welcome!
-
-## Inspiration
-
-Sparkle is inspired by:
-- **Shiny** - The pioneering R web framework
-- **React** - For its elegant component model
-- **webR** - Making R run in the browser
-- **Svelte** - For compiler-driven approaches to reactivity
+This is an experimental project. If you're interested in exploring these ideas
+or have thoughts on how to address the limitations, contributions and feedback
+are welcome.
 
 ## License
 
 MIT License - see LICENSE file for details
-
----
-
-**Note**: This is a proof-of-concept. Not recommended for production use yet.

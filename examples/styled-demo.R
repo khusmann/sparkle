@@ -41,7 +41,7 @@ App <- function() {
     padding = "20px",
     border_radius = "12px",
     background_color = "#f9fafb",
-    color = if (count() > 0) "#22c55e" else if (count() < 0) "#ef4444" else "#6b7280",
+    color = if (count > 0) "#22c55e" else if (count < 0) "#ef4444" else "#6b7280",
     transition = "color 0.3s ease"
   )
 
@@ -65,18 +65,18 @@ App <- function() {
         "Styled Components Demo ✨",
         style = list(text_align = "center", color = "#374151")
       ),
-      CountDisplay(paste("Count:", count())),
+      CountDisplay(paste("Count:", count)),
       ButtonRow(
-        PrimaryButton("- Decrement", on_click = \() set_count(count() - 1)),
+        PrimaryButton("- Decrement", on_click = \() set_count(\(c) c - 1)),
         PrimaryButton("Reset", on_click = \() set_count(0)),
-        PrimaryButton("+ Increment", on_click = \() set_count(count() + 1))
+        PrimaryButton("+ Increment", on_click = \() set_count(\(c) c + 1))
       ),
       tags$p(
         paste(
           "You've clicked",
-          abs(count()),
+          abs(count),
           "times",
-          if (count() > 0) "(positive)" else if (count() < 0) "(negative)" else ""
+          if (count > 0) "(positive)" else if (count < 0) "(negative)" else ""
         ),
         style = list(
           text_align = "center",

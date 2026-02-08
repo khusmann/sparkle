@@ -29,7 +29,7 @@ App <- function() {
       class_name = "todo-input",
       tags$input(
         type = "text",
-        value = input_text(),
+        value = input_text,
         placeholder = "Enter a new task...",
         on_change = \(e) {
           set_input_text(e$target$value)
@@ -38,8 +38,8 @@ App <- function() {
       tags$button(
         "Add Task",
         on_click = \() {
-          if (nchar(input_text()) > 0) {
-            set_todos(\(t) c(t, list(create_todo(input_text()))))
+          if (nchar(input_text) > 0) {
+            set_todos(\(t) c(t, list(create_todo(input_text))))
             set_input_text("")
           }
         }
@@ -49,11 +49,11 @@ App <- function() {
     # Todo list
     tags$div(
       class_name = "todo-list",
-      if (length(todos()) == 0) {
+      if (length(todos) == 0) {
         tags$p("No todos yet! Add one above.")
       } else {
-        lapply(seq_along(todos()), \(i) {
-          todo <- todos()[[i]]
+        lapply(seq_along(todos), \(i) {
+          todo <- todos[[i]]
           tags$div(
             class_name = "todo-item",
             tags$input(
@@ -83,8 +83,8 @@ App <- function() {
     tags$div(
       class_name = "todo-summary",
       tags$p(paste(
-        length(todos()), "total,",
-        sum(vapply(todos(), \(t) t$completed, logical(1))), "completed"
+        length(todos), "total,",
+        sum(vapply(todos, \(t) t$completed, logical(1))), "completed"
       )),
       tags$button(
         "Clear Completed",

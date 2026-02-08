@@ -45,7 +45,7 @@ sparkle_set_state <- function(index, value) {
 #'
 #' @param initial_value The initial value for the state variable
 #' @return A 2-element list containing:
-#'   \item{1}{A getter function that returns the current state value}
+#'   \item{1}{The current state value}
 #'   \item{2}{A setter function(new_value_or_fn) that updates state. Pass a value to set it directly, or a function(old_value) -> new_value for updates based on previous state}
 #' @export
 #' @examples
@@ -55,8 +55,8 @@ sparkle_set_state <- function(index, value) {
 #' Counter <- function() {
 #'   c(count, setCount) %<-% use_state(0)
 #'   tags$div(
-#'     tags$h1(paste("Count:", count())),
-#'     tags$button("Increment", on_click = \() setCount(count() + 1)),
+#'     tags$h1(paste("Count:", count)),
+#'     tags$button("Increment", on_click = \() setCount(\(c) c + 1)),
 #'     tags$button("Reset", on_click = \() setCount(0))
 #'   )
 #' }
@@ -80,10 +80,8 @@ use_state <- function(initial_value) {
     .sparkle_hook_state$state_values[[hook_idx + 1]] <- initial_value
   }
 
-  # Create getter function
-  getter <- function() {
-    sparkle_get_state(hook_idx)
-  }
+  # Get current value
+  value <- sparkle_get_state(hook_idx)
 
   # Create setter function
   setter <- function(new_value_or_fn) {
@@ -99,7 +97,7 @@ use_state <- function(initial_value) {
   }
 
   # Return list for zeallot unpacking
-  list(getter, setter)
+  list(value, setter)
 }
 
 #' Reset hook index (internal)

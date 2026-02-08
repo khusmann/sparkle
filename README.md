@@ -46,23 +46,24 @@ Sparkle enables R developers to create interactive web applications using famili
 
 ```r
 library(sparkle)
+library(zeallot)
 
 Counter <- function() {
-  count <- use_state(0)
+  c(count, set_count) %<-% use_state(0)
 
   tags$div(
-    tags$h1(paste("Count:", count$value)),
+    tags$h1(paste("Count:", count)),
     tags$button(
       "Increment",
-      on_click = wrap_fn(\() count$set(count$value + 1))
+      on_click = \() set_count(\(c) c + 1)
     ),
     tags$button(
       "Decrement",
-      on_click = wrap_fn(\() count$set(count$value - 1))
+      on_click = \() set_count(\(c) c - 1)
     ),
     tags$button(
       "Reset",
-      on_click = wrap_fn(\() count$set(0))
+      on_click = \() set_count(0)
     )
   )
 }
@@ -105,7 +106,7 @@ Sparkle hooks into React's `useState` directly:
 1. User clicks "Increment" button
 2. React fires `onClick` event
 3. Event handler queues R callback to webR worker
-4. webR executes: `count$set(count$value + 1)`
+4. webR executes: `set_count(\(c) c + 1)`
 5. React's `setState` called with new value
 6. React re-renders → calls `Counter()` function again
 7. New virtual DOM generated with updated count
@@ -143,33 +144,43 @@ tags$div(
 
 #### `use_state(initial_value)`
 
-Creates a reactive state variable.
+Creates a reactive state variable. Works like React's `useState` hook.
 
 ```r
-count <- use_state(0)
+library(zeallot)
 
-# Access value
-count$value
+# Destructure into value and setter (like React)
+c(count, set_count) %<-% use_state(0)
 
-# Update value
-count$set(count$value + 1)
+# Access value directly (no function call needed)
+count
 
-# Or use updater function
-count$set(\(prev) prev + 1)
+# Update with new value
+set_count(5)
+
+# Or use functional update (setter receives previous value)
+set_count(\(prev) prev + 1)
 ```
 
 ### Event Handlers
 
-#### `wrap_fn(fn)`
-
-Wraps an R function for use as an event handler.
+Event handlers are passed as lambda functions directly to element props.
 
 ```r
 tags$button(
   "Click me",
-  on_click = wrap_fn(\() {
+  on_click = \() {
     print("Button clicked!")
-  })
+  }
+)
+
+# Event handlers receive event objects
+tags$input(
+  type = "text",
+  on_change = \(e) {
+    new_value <- e$target$value
+    print(new_value)
+  }
 )
 ```
 

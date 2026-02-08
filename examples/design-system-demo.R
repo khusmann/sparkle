@@ -13,8 +13,8 @@ App <- function() {
   c(show_success, set_show_success) %<-% use_state(FALSE)
 
   handleSubmit <- function() {
-    if (nchar(name()) > 0 && nchar(email()) > 0) {
-      set_message(paste("Welcome,", name(), "! We'll contact you at", email()))
+    if (nchar(name) > 0 && nchar(email) > 0) {
+      set_message(paste("Welcome,", name, "! We'll contact you at", email))
       set_show_success(TRUE)
     } else {
       set_message("Please fill in all fields")
@@ -59,7 +59,7 @@ App <- function() {
             ui$Input(
               type = "text",
               placeholder = "Enter your name",
-              value = name(),
+              value = name,
               on_change = \(e) set_name(e$target$value)
             )
           ),
@@ -75,7 +75,7 @@ App <- function() {
             ui$Input(
               type = "email",
               placeholder = "your.email@example.com",
-              value = email(),
+              value = email,
               on_change = \(e) set_email(e$target$value)
             )
           ),
@@ -100,10 +100,10 @@ App <- function() {
           ),
 
           # Feedback message
-          if (nchar(message()) > 0) {
+          if (nchar(message) > 0) {
             ui$Alert(
-              message(),
-              variant = if (show_success()) "success" else "warning"
+              message,
+              variant = if (show_success) "success" else "warning"
             )
           }
         )

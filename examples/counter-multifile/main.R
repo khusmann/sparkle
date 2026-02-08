@@ -24,13 +24,13 @@ App <- function() {
 
   # Event handlers
   increment <- function() {
-    set_count(count() + 1)
-    set_total_clicks(total_clicks() + 1)
+    set_count(\(c) c + 1)
+    set_total_clicks(\(t) t + 1)
   }
 
   decrement <- function() {
-    set_count(count() - 1)
-    set_total_clicks(total_clicks() + 1)
+    set_count(\(c) c - 1)
+    set_total_clicks(\(t) t + 1)
   }
 
   reset <- function() {
@@ -67,7 +67,7 @@ App <- function() {
     ),
 
     # Counter display (from components.R, uses utils.R)
-    CounterDisplay(count()),
+    CounterDisplay(count),
 
     # Control buttons (using ActionButton component from components.R)
     tags$div(
@@ -83,7 +83,7 @@ App <- function() {
     ),
 
     # Statistics card (from components.R)
-    StatsCard(count(), total_clicks()),
+    StatsCard(count, total_clicks),
 
     # File structure info
     tags$div(

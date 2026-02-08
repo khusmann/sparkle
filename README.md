@@ -13,8 +13,6 @@ Interactive demos running in your browser ([source in `examples/`](examples/)):
 
 - **[Counter](https://khusmann.github.io/sparkle/counter)** - State management
   basics
-- **[Todo List](https://khusmann.github.io/sparkle/todo)** - Complex state with
-  lists and filters
 
 ### Styling
 
@@ -25,8 +23,8 @@ Interactive demos running in your browser ([source in `examples/`](examples/)):
 
 ### Code Organization
 
-- **[Multi-file App](https://khusmann.github.io/sparkle/counter-multifile)** -
-  Project organization patterns
+- **[Multi-file TODO App](https://khusmann.github.io/sparkle/todo-multifile)** -
+  Complex state management with multi-file organization and styled components
 
 ## Overview
 
@@ -159,14 +157,17 @@ Sparkle hooks into React's `useState` directly:
 
 ### Optimistic Updates
 
-Text inputs use optimistic updates to feel instantly responsive despite webR's overhead:
+Text inputs use optimistic updates to feel instantly responsive despite webR's
+overhead:
 
 - Local value updates immediately on keystroke (no waiting for R)
 - Changes are debounced (150ms) before sending to R
 - Sequence numbers prevent stale updates from overwriting newer input
 - Reset buttons and programmatic state changes work correctly
 
-This makes Sparkle apps feel as responsive as native JavaScript apps, even though they're powered by R running in WebAssembly. See [OPTIMISTIC_UPDATES.md](OPTIMISTIC_UPDATES.md) for details.
+This makes Sparkle apps feel as responsive as native JavaScript apps, even
+though they're powered by R running in WebAssembly. See
+[OPTIMISTIC_UPDATES.md](OPTIMISTIC_UPDATES.md) for details.
 
 ### Example: Counter Component Flow
 

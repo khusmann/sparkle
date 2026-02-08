@@ -9,6 +9,12 @@ App <- function() {
 
   tags$div(
     tags$h1(paste("Count:", count)),
+    tags$p(
+      tags$a(
+        "View source",
+        href = "https://github.com/khusmann/sparkle/blob/main/examples/counter.R"
+      )
+    ),
     tags$button(
       "Increment",
       on_click = \() set_count(\(c) c + 1)
@@ -20,13 +26,6 @@ App <- function() {
     tags$button(
       "Reset",
       on_click = \() set_count(0)
-    ),
-    tags$p(
-      tags$a(
-        "View source",
-        href = "https://github.com/khusmann/sparkle/blob/main/examples/counter.R",
-        target = "_blank"
-      )
     )
   )
 }

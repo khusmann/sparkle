@@ -31,7 +31,16 @@ App <- function() {
     tags$div(
       style = list(text_align = "center", margin_bottom = "30px"),
       tags$h1("My TODO List ✨"),
-      tags$p("Stay organized and get things done!")
+      tags$p(
+        "Stay organized and get things done! ",
+        tags$a(
+          "View source",
+          href = paste0(
+            "https://github.com/khusmann/sparkle/",
+            "blob/main/examples/todo.R"
+          )
+        )
+      )
     ),
 
     # Add task card
@@ -221,25 +230,7 @@ App <- function() {
           on_click = \() set_todos(list())
         )
       )
-    },
-
-    # Source code link
-    tags$div(
-      style = list(
-        margin_top = "40px",
-        padding_top = "20px",
-        border_top = "1px solid #e5e7eb",
-        text_align = "center",
-        font_size = "14px",
-        color = "#6b7280"
-      ),
-      tags$a(
-        "View source on GitHub",
-        href = "https://github.com/khusmann/sparkle/blob/main/examples/todo.R",
-        target = "_blank",
-        style = list(color = "#3b82f6", text_decoration = "none")
-      )
-    )
+    }
   )
 
   # Wrap with style tag to inject CSS

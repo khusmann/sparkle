@@ -58,11 +58,18 @@ App <- function() {
     ),
 
     tags$p(
-      "This example demonstrates code organization across multiple files!",
       style = list(
         text_align = "center",
         color = "#6b7280",
         margin_bottom = "30px"
+      ),
+      "This example demonstrates code organization across multiple files! ",
+      tags$a(
+        "View source",
+        href = paste0(
+          "https://github.com/khusmann/sparkle/",
+          "tree/main/examples/counter-multifile"
+        )
       )
     ),
 
@@ -107,24 +114,6 @@ App <- function() {
         "├── main.R         (App definition)",
         tags$br(),
         "└── utils.R        (Helper functions)"
-      )
-    ),
-
-    # Source code link
-    tags$div(
-      style = list(
-        margin_top = "40px",
-        padding_top = "20px",
-        border_top = "1px solid #e5e7eb",
-        text_align = "center",
-        font_size = "14px",
-        color = "#6b7280"
-      ),
-      tags$a(
-        "View source on GitHub",
-        href = "https://github.com/khusmann/sparkle/tree/main/examples/counter-multifile",
-        target = "_blank",
-        style = list(color = "#3b82f6", text_decoration = "none")
       )
     )
   )

@@ -48,7 +48,7 @@ App <- function() {
             value = input_text,
             placeholder = "Enter a new task...",
             on_change = \(e) set_input_text(e$target$value),
-            on_keypress = \(e) {
+            on_key_down = \(e) {
               if (e$key == "Enter" && nchar(input_text) > 0) {
                 set_todos(\(t) c(t, list(create_todo(input_text))))
                 set_input_text("")

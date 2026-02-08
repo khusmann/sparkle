@@ -145,7 +145,7 @@ function OptimisticInput({ value: rValue, renderSequence, onChange: rOnChange, .
       if (rOnChange) {
         rOnChange(syntheticEvent);
       }
-    }, 50); // 50ms debounce
+    }, 150); // 150ms debounce
   };
 
   // Cleanup on unmount

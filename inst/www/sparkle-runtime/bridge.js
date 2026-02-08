@@ -238,6 +238,7 @@ class SparkleBridge {
       const [rOutput, setROutput] = React.useState(null);
       const [isUpdating, setIsUpdating] = React.useState(false);
       const isFirstRender = React.useRef(true);
+      const updateTimeoutRef = React.useRef(null);
 
       // Store rerender callback for state updates
       this.rerenderCallback = () => {
@@ -248,19 +249,31 @@ class SparkleBridge {
         // Reset hook index before rendering
         this.hookManager.reset();
 
-        // Set updating state (but not on first render where we want true loading)
+        // Set updating state after 500ms delay (but not on first render where we want true loading)
         if (!isFirstRender.current) {
-          setIsUpdating(true);
+          updateTimeoutRef.current = setTimeout(() => {
+            setIsUpdating(true);
+          }, 500);
         }
 
         // Call the R component function
         this.callRComponent()
           .then(output => {
+            // Clear the timeout if render completed before 500ms
+            if (updateTimeoutRef.current) {
+              clearTimeout(updateTimeoutRef.current);
+              updateTimeoutRef.current = null;
+            }
             setROutput(output);
             setIsUpdating(false);
             isFirstRender.current = false;
           })
           .catch(error => {
+            // Clear the timeout on error
+            if (updateTimeoutRef.current) {
+              clearTimeout(updateTimeoutRef.current);
+              updateTimeoutRef.current = null;
+            }
             console.error('Error calling R component:', error);
             setIsUpdating(false);
             isFirstRender.current = false;

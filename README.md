@@ -3,7 +3,10 @@
 A client-side reactive framework for R that runs entirely in the browser using
 webR and React.
 
-Sparkle brings React's explicit state management and component model to R. Instead of Shiny's implicit reactive graph, write components as pure functions with explicit state updates—making apps easier to reason about, debug, and scale.
+Sparkle brings React's explicit state management and component model to R.
+Instead of Shiny's implicit reactive graph, write components as pure functions
+with explicit state updates—making apps easier to reason about, debug, and
+scale.
 
 **Note**: Experimental weekend project. Not production-ready.
 
@@ -36,6 +39,7 @@ making Shiny client-side. Instead, this explores whether React's programming
 model can work in R.
 
 **Shiny vs React:**
+
 - Shiny: Implicit reactive graph, automatic dependency tracking. Convenient for
   simple apps, hard to debug at scale.
 - React: Explicit state updates, components as pure functions. More predictable
@@ -50,7 +54,7 @@ React handles the actual DOM updates.
 
 Client-side execution, R-native syntax (snake_case), React rendering, state
 management via `useState`, and simple static deployment. See
-[examples](https://khusmann.github.io/sparkle/counter) running in your browser.
+[examples](https://khusmann.github.io/sparkle) running in your browser.
 
 ## Quick Start
 
@@ -123,6 +127,7 @@ This will:
 ## How It Works
 
 **Data flow:**
+
 ```
 R Component (tags$*)
     ↓

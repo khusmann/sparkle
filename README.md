@@ -3,6 +3,8 @@
 A client-side reactive framework for R that runs entirely in the browser using
 webR and React.
 
+Sparkle brings React's explicit state management and component model to R. Instead of Shiny's implicit reactive graph, write components as pure functions with explicit state updates—making apps easier to reason about, debug, and scale.
+
 **Note**: Experimental weekend project. Not production-ready.
 
 ## Examples
@@ -31,35 +33,24 @@ Interactive demos running in your browser ([view source](examples/)):
 Shiny already runs in the browser via
 [shinylive](https://posit-dev.github.io/r-shinylive/), so this isn't about
 making Shiny client-side. Instead, this explores whether React's programming
-model - component functions, hooks like `useState`, explicit state management -
-can work in R.
+model can work in R.
 
-Shiny uses reactive programming with reactive expressions and observers, where
-dependencies are tracked automatically. This is convenient for simple apps but
-becomes hard to debug as complexity grows. React's explicit state model is
-simpler: components are just functions called on every render, state updates are
-explicit, and re-rendering is predictable. This makes React's model easier to
-reason about, debug, and scale. But how well does this approach work in R?
+**Shiny vs React:**
+- Shiny: Implicit reactive graph, automatic dependency tracking. Convenient for
+  simple apps, hard to debug at scale.
+- React: Explicit state updates, components as pure functions. More predictable
+  and easier to reason about.
 
-Sparkle is an experimental proof-of-concept exploring what React-style
-programming looks like in R. It combines webR (R compiled to WebAssembly) with
-React's component model and rendering engine. Component functions are written in
-R, return virtual DOM descriptions, and React handles the rendering. State lives
-in React, and R component functions are called on every render to produce UI.
-
-The experiment explores three questions: Can React's programming model translate
-to R? What does `useState`, `useEffect`, and component-based architecture look
-like with R syntax? And is the performance acceptable when R computes component
-renders while React handles the virtual DOM reconciliation?
+**How it works:** Sparkle combines webR (R in WebAssembly) with React's
+rendering engine. Write component functions in R that return virtual DOM
+descriptions. State lives in React, R functions are called on every render, and
+React handles the actual DOM updates.
 
 ## What Works
 
-- **Client-side execution** - Everything runs in the browser via webR
-- **R-native syntax** - Write components in R with familiar snake_case
-  conventions
-- **React rendering** - Uses React's rendering engine and virtual DOM
-- **State management** - Hooks into React's `useState` via a JavaScript bridge
-- **Simple deployment** - No server infrastructure needed
+Client-side execution, R-native syntax (snake_case), React rendering, state
+management via `useState`, and simple static deployment. See
+[examples](https://khusmann.github.io/sparkle/counter) running in your browser.
 
 ## Quick Start
 
@@ -131,54 +122,28 @@ This will:
 
 ## How It Works
 
-### Architecture
-
+**Data flow:**
 ```
-R Component Function → Virtual DOM Description → Sparkle Bridge → React Elements → Browser DOM
-     ↑                                                                                    ↓
-     └──────────────────── Event Callbacks (async via webR) ────────────────────────────┘
+R Component (tags$*)
+    ↓
+Virtual DOM (R lists)
+    ↓
+Bridge (R ↔ JS)
+    ↓
+React Elements
+    ↓
+Browser DOM
+    ↑
+User Events → webR callbacks
 ```
 
-1. **R Component**: You write a function that returns virtual DOM descriptions
-   using `tags$*`
-2. **Virtual DOM**: R creates list structures describing the UI
-3. **Bridge Layer**: JavaScript translates R structures to React elements
-4. **React**: Renders to the browser DOM
-5. **Events**: User interactions trigger R callbacks via webR
+**State management:** State lives in React (not R). Component functions are pure
+render functions called on every render. Event handlers execute asynchronously
+in webR.
 
-### State Management
-
-Sparkle hooks into React's `useState` directly:
-
-- State lives in React/JavaScript (not synchronized to R)
-- R component functions are pure render functions
-- Called on every render (like React function components)
-- Event handlers execute asynchronously in webR
-
-### Optimistic Updates
-
-Text inputs use optimistic updates to feel instantly responsive despite webR's
-overhead:
-
-- Local value updates immediately on keystroke (no waiting for R)
-- Changes are debounced (150ms) before sending to R
-- Sequence numbers prevent stale updates from overwriting newer input
-- Reset buttons and programmatic state changes work correctly
-
-This makes Sparkle apps feel as responsive as native JavaScript apps, even
-though they're powered by R running in WebAssembly. See
+**Optimistic updates:** Text inputs update locally first, then sync to R after
+150ms debounce. This keeps the UI responsive despite webR overhead. See
 [OPTIMISTIC_UPDATES.md](OPTIMISTIC_UPDATES.md) for details.
-
-### Example: Counter Component Flow
-
-1. User clicks "Increment" button
-2. React fires `onClick` event
-3. Event handler queues R callback to webR worker
-4. webR executes: `set_count(\(c) c + 1)`
-5. React's `setState` called with new value
-6. React re-renders → calls `Counter()` function again
-7. New virtual DOM generated with updated count
-8. React updates browser DOM
 
 ## API Reference
 
@@ -264,17 +229,9 @@ tags$input(
 
 ### Styled Components
 
-Sparkle adopts React's [styled-components](https://styled-components.com/)
-pattern, bringing its powerful approach to R. This pattern makes styling more
-maintainable by:
-
-- **Automatic scoping** - Generated class names prevent style collisions
-- **Dynamic styling** - Compute styles from component state/props
-- **Colocation** - Keep styles with component logic for better organization
-- **Dead code elimination** - Unused styles are never generated
-
-Use `styled_*` functions (`styled_div`, `styled_button`, `styled_input`, etc.)
-to create reusable styled elements:
+Adopts React's [styled-components](https://styled-components.com/) pattern with
+automatic scoping, dynamic styling, and colocation. Create styled elements with
+`styled_*` functions:
 
 ```r
 PrimaryButton <- styled_button(
@@ -288,8 +245,7 @@ PrimaryButton <- styled_button(
 PrimaryButton("Click me", on_click = handler)
 ```
 
-Style properties use snake_case and can be computed dynamically from state.
-Check out
+Properties use snake_case and can be computed from state. See
 [`styled-demo.R`](https://github.com/khusmann/sparkle/blob/main/examples/styled-demo.R).
 
 ### Design System
@@ -354,79 +310,26 @@ CDN dependencies.
 
 ## Status and Limitations
 
-**This is a proof-of-concept**, built to answer the question: "Can React's
-programming model work in R?"
-
-The basic architecture works:
-
-- HTML tag rendering
-- State management (`use_state`)
-- Event handlers
-- R-first development workflow
-
-But there are significant limitations:
+**Proof-of-concept** exploring whether React's programming model can work in R.
+Basic architecture works (rendering, `use_state`, event handlers), but has
+significant limitations:
 
 ### No Async/Await in R
 
-This is the most significant limitation. R doesn't have async/await, and webR
-executes R code synchronously. This means:
+R doesn't have async/await. Long-running computations in the webR worker run to
+completion without yielding—blocking progress updates, cancellation, or other
+callbacks. Component functions must be fast since they run on every render.
 
-- **Long-running computations block everything** - If you run an expensive
-  calculation in an event handler, the entire R environment is blocked until it
-  completes. You can't update progress, cancel operations, or run other
-  callbacks during that time.
+**Future work:** Experiment with an R API to spawn background workers for
+expensive computations, allowing the main thread to remain responsive during
+long-running operations.
 
-- **Component functions must be fast** - These are called on every render (like
-  React function components). Any expensive computation here will make the UI
-  unresponsive.
+### Missing Features
 
-- **No way to yield control mid-execution** - Unlike JavaScript's `async/await`
-  or `setTimeout`, you can't break up work into chunks that yield back to the
-  event loop.
-
-**Workarounds** are possible but awkward:
-
-- Cache expensive results in state and only recompute when inputs change
-- Show loading states with no progress indication
-- Break work into multiple event handler calls (each triggers a re-render)
-- Extend the JavaScript bridge to orchestrate chunked R execution
-
-This is a fundamental architectural constraint, not something that can be easily
-fixed. A production version would need bridge-level support for
-interruptible/chunkable R computations.
-
-### Other Missing Features
-
-- Additional hooks (`use_effect`, `use_memo`, `use_callback`, `use_ref`)
-- Comprehensive event support
-- Form input handling
+Additional hooks (`use_effect`, `use_memo`, `use_callback`, `use_ref`),
+comprehensive event support, form input handling.
 
 ## Technical Details
-
-### Project Structure
-
-```
-sparkle/
-├── R/                          # R package code
-│   ├── tags.R                  # HTML tag builders
-│   ├── hooks.R                 # React hooks interface
-│   ├── callbacks.R             # Event callback wrapping
-│   └── app.R                   # App launcher with dev server
-├── inst/
-│   └── www/                    # Web assets
-│       ├── index.html          # Base HTML template
-│       ├── bundle.js           # Bundled JavaScript runtime (generated)
-│       └── sparkle-runtime/    # JavaScript source
-│           ├── bridge.js       # Main webR ↔ React coordinator
-│           ├── component-factory.js  # R virtual DOM → React elements
-│           ├── hook-manager.js       # React hooks bridge
-│           ├── event-handler.js      # Event callback execution
-│           └── prop-transformer.js   # snake_case → camelCase
-├── DESCRIPTION                 # R package metadata
-├── NAMESPACE                   # R package exports
-├── package.json                # JavaScript dependencies
-└── build.js                    # JavaScript build script
-```
 
 ### Dependencies
 

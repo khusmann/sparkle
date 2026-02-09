@@ -14,10 +14,9 @@ sparkle::sparkle_app("examples/todo-multifile/")
 todo-multifile/
 ├── aaa-libraries.R      # Library imports (loaded first)
 ├── layout.R             # Reusable layout components
-├── stats-card.R         # StatsCard component
-├── todo-item.R          # TodoItem component and StyledCheckbox
-├── utils.R              # Helper functions
 ├── main.R               # Main App component
+├── stats-card.R         # StatsCard component
+├── todo-item.R          # TodoItem component
 └── README.md            # This file
 ```
 
@@ -28,15 +27,13 @@ todo-multifile/
 Files are loaded **alphabetically** by sparkle:
 1. `aaa-libraries.R` - Loaded first (imports sparkle & zeallot)
 2. `layout.R` - Reusable layout components
-3. `main.R` - Main App component
+3. `main.R` - Main App component (includes helper functions)
 4. `stats-card.R` - StatsCard component
-5. `todo-item.R` - TodoItem and form components
-6. `utils.R` - Helper utilities
+5. `todo-item.R` - TodoItem component
 
 All functions and libraries from all files are available in the global scope, so:
 - Libraries only need to be loaded once in `aaa-libraries.R`
 - `main.R` can use components from `layout.R`, `stats-card.R`, and `todo-item.R`
-- Components can use utilities from `utils.R`
 - Order doesn't matter as long as the `App` function is defined
 
 ### App Component
@@ -51,10 +48,6 @@ Loads all required packages:
 - `library(zeallot)` - For destructuring assignment (`%<-%`)
 
 **Why prefix with `aaa-`?** Files are loaded alphabetically, so `aaa-` ensures libraries are loaded before any other code that depends on them.
-
-### utils.R
-Contains pure helper functions that don't render UI:
-- `create_todo()` - Factory function for creating new todo items with unique IDs
 
 ### layout.R
 Contains reusable layout components using Sparkle's styled component system:
@@ -90,15 +83,16 @@ This file demonstrates:
 - Defining complex CSS with pseudo-selectors (`:hover`)
 
 ### main.R
-Contains the main `App` component that:
-- Manages application state (todos list, input text)
-- Calculates derived state (stats, counts)
-- Defines event handlers for adding, toggling, and deleting todos
-- Composes UI using the design system and styled components
-- Uses layout components (`HeaderSection`, `TasksHeader`, `CenterWrapper`)
-- Uses `StatsCard` for displaying metrics
-- Uses `TodoItem` for rendering individual todos
-- Uses utilities from `utils.R`
+Contains helper functions and the main `App` component:
+- `create_todo()` - Helper function to create todo items with unique IDs
+- `App()` - Main component that:
+  - Manages application state (todos list, input text)
+  - Calculates derived state (stats, counts)
+  - Defines event handlers for adding, toggling, and deleting todos
+  - Composes UI using the design system and styled components
+  - Uses layout components (`HeaderSection`, `TasksHeader`, `CenterWrapper`)
+  - Uses `StatsCard` for displaying metrics
+  - Uses `TodoItem` for rendering individual todos
 
 ## Styled Components Pattern
 

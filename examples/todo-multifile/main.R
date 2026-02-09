@@ -1,5 +1,14 @@
 # Main App component for the TODO list
 
+# Helper to create a todo item
+create_todo <- function(text) {
+  list(
+    id = as.numeric(Sys.time()) * 1000 + sample.int(1000, 1),
+    text = text,
+    completed = FALSE
+  )
+}
+
 App <- function() {
   c(todos, set_todos) %<-% use_state(list())
   c(input_text, set_input_text) %<-% use_state("")

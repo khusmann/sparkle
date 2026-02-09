@@ -93,7 +93,7 @@ Create a file `counter.R` with your component:
 
 ```r
 library(sparkle)
-library(zeallot)
+library(zeallot)  # Provides the %<-% operator for destructuring assignment
 
 App <- function() {
   c(count, set_count) %<-% use_state(0)

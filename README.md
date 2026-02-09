@@ -7,7 +7,7 @@ webR and React.
 
 ## Examples
 
-Interactive demos running in your browser ([source in `examples/`](examples/)):
+Interactive demos running in your browser ([view source](examples/)):
 
 ### Core Concepts
 

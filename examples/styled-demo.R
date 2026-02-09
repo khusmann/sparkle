@@ -33,14 +33,18 @@ Container <- styled_div(
   max_width = "600px",
   margin = "40px auto",
   padding = "30px",
-  font_family = "system-ui, -apple-system, sans-serif"
+  font_family = "system-ui, -apple-system, sans-serif",
+  width = "100%",
+  box_sizing = "border-box",
+  overflow_x = "hidden"
 )
 
 ButtonRow <- styled_div(
   display = "flex",
   gap = "12px",
   justify_content = "center",
-  margin_top = "20px"
+  margin_top = "20px",
+  flex_wrap = "wrap"
 )
 
 # Wrapper component with dynamic styles

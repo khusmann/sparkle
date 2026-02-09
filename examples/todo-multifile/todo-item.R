@@ -17,6 +17,7 @@ TodoItem <- function(todo, index, on_toggle, on_delete) {
     background_color = if (todo$completed) "#f9fafb" else "white",
     border = "1px solid #e5e7eb",
     transition = "all 0.2s ease",
+    flex_wrap = "wrap",
     css = "
       &:hover {
         border-color: #d1d5db;
@@ -30,7 +31,9 @@ TodoItem <- function(todo, index, on_toggle, on_delete) {
     font_size = "16px",
     color = if (todo$completed) "#9ca3af" else "#111827",
     text_decoration = if (todo$completed) "line-through" else "none",
-    transition = "all 0.2s ease"
+    transition = "all 0.2s ease",
+    min_width = "0",
+    word_wrap = "break-word"
   )
 
   Item(

@@ -52,7 +52,7 @@ App <- function() {
         spacing = "sm",
 
         tags$div(
-          style = list(flex = "1"),
+          style = list(flex = "1", min_width = "0"),
           ui$Input(
             type = "text",
             value = input_text,

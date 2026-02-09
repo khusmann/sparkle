@@ -4,7 +4,8 @@ StatsCard <- function(count, label, color) {
   # Local: Component-specific styled elements
   Container <- styled_div(
     flex = "1",
-    text_align = "center"
+    text_align = "center",
+    min_width = "80px"
   )
 
   Label <- styled_div(

@@ -271,7 +271,8 @@ ui$Stack <- function(..., direction = "vertical", spacing = "md") {
   StyledStack <- styled_div(
     display = "flex",
     flex_direction = flex_direction,
-    gap = gap_value
+    gap = gap_value,
+    flex_wrap = "wrap"
   )
 
   StyledStack(...)
@@ -282,7 +283,9 @@ ui$Container <- function(..., max_width = "1200px") {
     max_width = max_width,
     margin = "0 auto",
     padding = paste0(.tokens$spacing$lg, " ", .tokens$spacing$md),
-    width = "100%"
+    width = "100%",
+    box_sizing = "border-box",
+    overflow_x = "hidden"
   )
 
   StyledContainer(...)

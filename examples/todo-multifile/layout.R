@@ -11,7 +11,9 @@ TasksHeader <- styled_div(
   display = "flex",
   justify_content = "space-between",
   align_items = "center",
-  margin_bottom = "16px"
+  margin_bottom = "16px",
+  flex_wrap = "wrap",
+  gap = "12px"
 )
 
 # Centered content wrapper

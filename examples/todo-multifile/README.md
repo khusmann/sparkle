@@ -112,7 +112,7 @@ This example highlights the **styled components** pattern in Sparkle:
    )
    ```
 
-4. **CSS-in-R**: Advanced CSS with pseudo-selectors via the `css` parameter:
+4. **Advanced CSS**: Pseudo-selectors and complex styles via the `css` parameter:
    ```r
    styled_div(
      css = "&:hover { border-color: #d1d5db; }"

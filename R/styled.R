@@ -1,7 +1,9 @@
 #' Styled Components for Sparkle
 #'
-#' Create styled components with CSS-in-R. These functions return factory functions
-#' that create elements with automatically generated CSS classes.
+#' Implements the styled-components pattern from React (https://styled-components.com/),
+#' bringing scoped styling and dynamic styles to R. These functions return factory
+#' functions that create elements with automatically generated CSS classes, preventing
+#' style collisions and enabling dynamic styling based on component state.
 #'
 #' @name styled-components
 NULL

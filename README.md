@@ -18,8 +18,8 @@ Interactive demos running in your browser ([source in `examples/`](examples/)):
 
 - **[Design System](https://khusmann.github.io/sparkle/design-system-demo)** -
   Pre-built UI components
-- **[Custom Styles](https://khusmann.github.io/sparkle/styled-demo)** - CSS-in-R
-  styling
+- **[Custom Styles](https://khusmann.github.io/sparkle/styled-demo)** - Styled
+  components pattern
 
 ### Code Organization
 
@@ -264,9 +264,17 @@ tags$input(
 
 ### Styled Components
 
-Create custom styled components with CSS-in-R. Use `styled_*` functions
-(`styled_div`, `styled_button`, `styled_input`, etc.) to create reusable styled
-elements:
+Sparkle adopts React's [styled-components](https://styled-components.com/)
+pattern, bringing its powerful approach to R. This pattern makes styling more
+maintainable by:
+
+- **Automatic scoping** - Generated class names prevent style collisions
+- **Dynamic styling** - Compute styles from component state/props
+- **Colocation** - Keep styles with component logic for better organization
+- **Dead code elimination** - Unused styles are never generated
+
+Use `styled_*` functions (`styled_div`, `styled_button`, `styled_input`, etc.)
+to create reusable styled elements:
 
 ```r
 PrimaryButton <- styled_button(

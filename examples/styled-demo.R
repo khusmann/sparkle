@@ -1,5 +1,5 @@
 # Sparkle Styled Components Demo
-# Demonstrates creating custom styled components with CSS-in-R
+# Demonstrates the styled-components pattern (from React) in R
 #
 # Run with: sparkle_app("examples/styled-demo.R")
 
@@ -76,7 +76,7 @@ App <- function() {
     ),
     tags$p(
       style = list(text_align = "center", color = "#6b7280"),
-      "Custom styled components with CSS-in-R. ",
+      "React's styled-components pattern in R. ",
       tags$a(
         "View source",
         href = paste0(

@@ -183,7 +183,7 @@ jobs:
 
               <li>
                 <h2><a href="./styled-demo/">Styled Demo</a></h2>
-                <p>Custom styled components with CSS-in-R.</p>
+                <p>React's styled-components pattern in R.</p>
               </li>
             </ul>
 

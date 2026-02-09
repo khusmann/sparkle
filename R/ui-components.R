@@ -1,6 +1,6 @@
 #' UI Component Library
 #'
-#' A collection of pre-built, beautifully styled components for Sparkle apps.
+#' A collection of pre-built components for Sparkle apps.
 #' These components provide a cohesive design system with consistent colors,
 #' spacing, and typography.
 #'

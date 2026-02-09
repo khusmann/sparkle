@@ -38,7 +38,7 @@ App <- function() {
       style = list(text_align = "center", margin_bottom = "40px"),
       tags$h1("Sparkle Design System ✨"),
       tags$p(
-        "Pre-built, beautifully styled components. ",
+        "Pre-built components for building reactive webR applications. ",
         tags$a(
           "View source",
           href = paste0(

@@ -4,6 +4,14 @@ App <- function() {
   c(todos, set_todos) %<-% use_state(list())
   c(input_text, set_input_text) %<-% use_state("")
 
+  # Event handlers
+  handle_add_task <- \() {
+    if (nchar(input_text) > 0) {
+      set_todos(\(t) c(t, list(create_todo(input_text))))
+      set_input_text("")
+    }
+  }
+
   # Calculate stats
   total_count <- length(todos)
   completed_count <- sum(vapply(todos, \(t) t$completed, logical(1)))
@@ -13,8 +21,7 @@ App <- function() {
     max_width = "800px",
 
     # Header
-    tags$div(
-      style = list(text_align = "center", margin_bottom = "30px"),
+    HeaderSection(
       tags$h1("My TODO List ✨"),
       tags$p(
         "Stay organized and get things done! ",
@@ -43,10 +50,7 @@ App <- function() {
             placeholder = "Enter a new task...",
             on_change = \(e) set_input_text(e$target$value),
             on_key_down = \(e) {
-              if (e$key == "Enter" && nchar(input_text) > 0) {
-                set_todos(\(t) c(t, list(create_todo(input_text))))
-                set_input_text("")
-              }
+              if (e$key == "Enter") handle_add_task()
             }
           )
         ),
@@ -55,12 +59,7 @@ App <- function() {
           "Add Task",
           variant = "primary",
           size = "md",
-          on_click = \() {
-            if (nchar(input_text) > 0) {
-              set_todos(\(t) c(t, list(create_todo(input_text))))
-              set_input_text("")
-            }
-          }
+          on_click = handle_add_task
         )
       )
     ),
@@ -72,54 +71,16 @@ App <- function() {
           direction = "horizontal",
           spacing = "md",
 
-          tags$div(
-            style = list(flex = "1", text_align = "center"),
-            tags$div(
-              style = list(font_size = "32px", font_weight = "bold", color = "#3b82f6"),
-              total_count
-            ),
-            tags$div(
-              style = list(font_size = "14px", color = "#6b7280"),
-              "Total"
-            )
-          ),
-
-          tags$div(
-            style = list(flex = "1", text_align = "center"),
-            tags$div(
-              style = list(font_size = "32px", font_weight = "bold", color = "#22c55e"),
-              completed_count
-            ),
-            tags$div(
-              style = list(font_size = "14px", color = "#6b7280"),
-              "Completed"
-            )
-          ),
-
-          tags$div(
-            style = list(flex = "1", text_align = "center"),
-            tags$div(
-              style = list(font_size = "32px", font_weight = "bold", color = "#f59e0b"),
-              remaining_count
-            ),
-            tags$div(
-              style = list(font_size = "14px", color = "#6b7280"),
-              "Remaining"
-            )
-          )
+          StatsCard(total_count, "Total", "#3b82f6"),
+          StatsCard(completed_count, "Completed", "#22c55e"),
+          StatsCard(remaining_count, "Remaining", "#f59e0b")
         )
       )
     },
 
     # Todo list
     ui$Card(
-      tags$div(
-        style = list(
-          display = "flex",
-          justify_content = "space-between",
-          align_items = "center",
-          margin_bottom = "16px"
-        ),
+      TasksHeader(
         tags$h3(style = list(margin = "0"), "Tasks"),
         if (completed_count > 0) {
           ui$Button(
@@ -162,8 +123,7 @@ App <- function() {
 
     # Clear all button
     if (total_count > 0) {
-      tags$div(
-        style = list(text_align = "center", margin_top = "20px"),
+      CenterWrapper(
         ui$Button(
           "Clear All Tasks",
           variant = "danger",

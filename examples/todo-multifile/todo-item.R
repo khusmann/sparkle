@@ -1,8 +1,14 @@
-# Styled components for the TODO app
+# TODO-specific components
 
-# Wrapper component for a single todo item with dynamic styles
 TodoItem <- function(todo, index, on_toggle, on_delete) {
-  StyledItem <- styled_div(
+  # Local: Component-specific styled elements
+  Checkbox <- styled_input(
+    width = "20px",
+    height = "20px",
+    cursor = "pointer"
+  )
+
+  Item <- styled_div(
     display = "flex",
     align_items = "center",
     gap = "12px",
@@ -19,7 +25,7 @@ TodoItem <- function(todo, index, on_toggle, on_delete) {
     "
   )
 
-  StyledText <- styled_span(
+  Text <- styled_span(
     flex = "1",
     font_size = "16px",
     color = if (todo$completed) "#9ca3af" else "#111827",
@@ -27,19 +33,14 @@ TodoItem <- function(todo, index, on_toggle, on_delete) {
     transition = "all 0.2s ease"
   )
 
-  StyledItem(
-    tags$input(
+  Item(
+    Checkbox(
       type = "checkbox",
       checked = todo$completed,
-      style = list(
-        width = "20px",
-        height = "20px",
-        cursor = "pointer"
-      ),
       on_change = on_toggle
     ),
 
-    StyledText(todo$text),
+    Text(todo$text),
 
     if (todo$completed) {
       ui$Badge("Done", variant = "success")

@@ -45,7 +45,8 @@ ButtonRow <- styled_div(
 
 # Wrapper component with dynamic styles
 CountDisplay <- function(count) {
-  StyledDisplay <- styled_div(
+  # Local: Component-specific styled element
+  Display <- styled_div(
     font_size = "48px",
     font_weight = "bold",
     text_align = "center",
@@ -57,7 +58,7 @@ CountDisplay <- function(count) {
     transition = "color 0.3s ease"
   )
 
-  StyledDisplay(paste("Count:", count))
+  Display(paste("Count:", count))
 }
 
 App <- function() {

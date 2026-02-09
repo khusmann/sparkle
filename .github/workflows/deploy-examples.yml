@@ -89,191 +89,107 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Sparkle Examples - Interactive Demos</title>
+            <title>Sparkle Examples</title>
             <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-              }
-
               body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 2rem 1rem;
-              }
-
-              .container {
-                max-width: 1200px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                line-height: 1.5;
+                max-width: 800px;
                 margin: 0 auto;
-              }
-
-              header {
-                text-align: center;
-                color: white;
-                margin-bottom: 3rem;
-              }
-
-              header h1 {
-                font-size: 3rem;
-                margin-bottom: 0.5rem;
-                font-weight: 700;
-              }
-
-              header p {
-                font-size: 1.25rem;
-                margin-bottom: 1rem;
-                opacity: 0.95;
-              }
-
-              header a {
-                color: white;
-                text-decoration: none;
-                border: 2px solid white;
-                padding: 0.5rem 1.5rem;
-                border-radius: 6px;
-                display: inline-block;
-                transition: all 0.3s ease;
-                font-weight: 500;
-              }
-
-              header a:hover {
-                background: white;
-                color: #667eea;
-              }
-
-              .examples-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 2rem;
-                margin-bottom: 3rem;
-              }
-
-              .example-card {
-                background: white;
-                border-radius: 12px;
                 padding: 2rem;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                color: #333;
               }
 
-              .example-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+              h1 {
+                margin-bottom: 0.5rem;
               }
 
-              .example-card.featured {
-                border: 3px solid #667eea;
-              }
-
-              .example-card h2 {
-                color: #667eea;
-                margin-bottom: 1rem;
-                font-size: 1.5rem;
-              }
-
-              .example-card p {
+              .subtitle {
                 color: #666;
+                margin-bottom: 2rem;
+              }
+
+              ul {
+                list-style: none;
+                padding: 0;
+              }
+
+              li {
                 margin-bottom: 1.5rem;
-                font-size: 0.95rem;
+                padding-bottom: 1.5rem;
+                border-bottom: 1px solid #eee;
               }
 
-              .button {
-                display: inline-block;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
+              li:last-child {
+                border-bottom: none;
+              }
+
+              h2 {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.25rem;
+              }
+
+              h2 a {
+                color: #0066cc;
                 text-decoration: none;
-                padding: 0.75rem 1.5rem;
-                border-radius: 6px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                text-align: center;
               }
 
-              .button:hover {
-                transform: translateX(5px);
-                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+              h2 a:hover {
+                text-decoration: underline;
+              }
+
+              p {
+                margin: 0;
+                color: #666;
               }
 
               footer {
-                text-align: center;
-                color: white;
                 margin-top: 3rem;
                 padding-top: 2rem;
-                border-top: 1px solid rgba(255, 255, 255, 0.3);
+                border-top: 1px solid #eee;
+                color: #666;
+                font-size: 0.9rem;
               }
 
               footer a {
-                color: white;
+                color: #0066cc;
                 text-decoration: none;
-                font-weight: 500;
               }
 
               footer a:hover {
                 text-decoration: underline;
               }
-
-              @media (max-width: 768px) {
-                header h1 {
-                  font-size: 2rem;
-                }
-
-                header p {
-                  font-size: 1rem;
-                }
-
-                .examples-grid {
-                  grid-template-columns: 1fr;
-                  gap: 1.5rem;
-                }
-              }
             </style>
           </head>
           <body>
-            <div class="container">
-              <header>
-                <h1>✨ Sparkle Examples</h1>
-                <p>Client-side reactive framework for R with React</p>
-                <a href="https://github.com/khusmann/sparkle" target="_blank">View on GitHub</a>
-              </header>
+            <h1>Sparkle Examples</h1>
+            <p class="subtitle">Client-side reactive framework for R with React</p>
 
-              <main>
-                <div class="examples-grid">
+            <ul>
+              <li>
+                <h2><a href="./counter/">Counter</a></h2>
+                <p>Basic counter with increment/decrement buttons.</p>
+              </li>
 
-                  <div class="example-card">
-                    <h2>Counter</h2>
-                    <p>Basic counter with increment/decrement. A simple introduction to useState and event handlers.</p>
-                    <a href="./counter/" class="button">Launch Demo →</a>
-                  </div>
+              <li>
+                <h2><a href="./todo-multifile/">Multi-File TODO List</a></h2>
+                <p>Task manager demonstrating complex state management and multi-file organization.</p>
+              </li>
 
-                  <div class="example-card featured">
-                    <h2>Multi-File TODO List</h2>
-                    <p>Task manager demonstrating complex state management with lists, filtering, and multiple state variables. Shows best practices for organizing Sparkle apps across multiple files.</p>
-                    <a href="./todo-multifile/" class="button">Launch Demo →</a>
-                  </div>
+              <li>
+                <h2><a href="./design-system-demo/">Design System Demo</a></h2>
+                <p>Showcase of pre-built UI components.</p>
+              </li>
 
-                  <div class="example-card">
-                    <h2>Design System Demo</h2>
-                    <p>Showcase of pre-built UI components including buttons, badges, alerts, inputs, and layout components.</p>
-                    <a href="./design-system-demo/" class="button">Launch Demo →</a>
-                  </div>
+              <li>
+                <h2><a href="./styled-demo/">Styled Demo</a></h2>
+                <p>Custom styled components with CSS-in-R.</p>
+              </li>
+            </ul>
 
-                  <div class="example-card">
-                    <h2>Styled Demo</h2>
-                    <p>Creating custom styled components with CSS-in-R, demonstrating dynamic styling and hover effects.</p>
-                    <a href="./styled-demo/" class="button">Launch Demo →</a>
-                  </div>
-
-                </div>
-              </main>
-
-              <footer>
-                <p>Built with Sparkle • <a href="https://github.com/khusmann/sparkle">Documentation</a></p>
-              </footer>
-            </div>
+            <footer>
+              <a href="https://github.com/khusmann/sparkle">View on GitHub</a>
+            </footer>
           </body>
           </html>
           EOF
